@@ -3,457 +3,363 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EFT Rat Run Decider</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <title>Jeopardy Clone</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* --- Basic Setup & Dark Theme --- */
-        :root {
-            --background-color: #1a1a1a;
-            --text-color: #e0e0e0;
-            --primary-color: #ffbf00;
-            --container-bg: #2c2c2c;
-            --border-color: #444;
-            --glow-color: rgba(255, 191, 0, 0.8);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            min-height: 100vh;
         }
-
-        .app-container {
-            width: 100vw;
-            height: 100vh;
-            background-color: var(--container-bg);
-        }
-
-        .main-layout {
-            display: flex;
-            height: 100%;
-        }
-
-
-        h1, h2 {
-            margin-bottom: 1.5rem;
-            color: var(--primary-color);
-        }
-
-        /* --- Screen States --- */
-        .screen {
-            display: none; /* Hidden by default */
-        }
-
-        .screen.active {
-            display: block;
-        }
-
-        /* --- Buttons --- */
-        .btn {
-            background-color: var(--primary-color);
-            color: var(--background-color);
-            border: none;
-            padding: 1rem 2rem;
-            font-size: 1.2rem;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            margin-top: 1rem;
-        }
-
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
-        }
-
-        /* --- Decider Screen & Animations --- */
-        .decider-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-
-        @media (min-width: 768px) {
-            .decider-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        .decider-list {
-            list-style: none;
-            padding: 1rem;
-            border: 2px solid var(--border-color);
-            border-radius: 10px;
-            height: 420px; /* Fixed height for consistent layout */
-            overflow: hidden;
-            position: relative;
-        }
-
-        .decider-list-item {
-            font-size: 1.5rem;
-            padding: 0.5rem;
-            border-radius: 5px;
-            transition: background-color 0.1s, color 0.1s, box-shadow 0.3s;
-        }
-
-        /* Highlight for spinning effect */
-        .decider-list-item.highlight {
-            background-color: var(--primary-color);
-            color: var(--background-color);
-        }
-
-        /* Final selection glow effect */
-        .decider-list-item.selected {
-            color: var(--primary-color);
-            box-shadow: 0 0 15px 5px var(--glow-color);
+        .jeopardy-blue { background-color: #060ce9; }
+        .jeopardy-text { font-family: 'Anton', sans-serif; color: #ffcc00; }
+        .category-text { font-family: 'Anton', sans-serif; }
+        .player-card.selected {
+            box-shadow: 0 0 15px 5px #ffcc00;
             transform: scale(1.05);
         }
-
-        /* --- Results Screen --- */
-        #results-screen h2 {
-            margin-bottom: 2rem;
+        .question-tile {
+            transition: transform 0.2s ease-in-out;
         }
-        
-        .result-item {
-            background-color: #333;
-            padding: 1.5rem;
-            border-radius: 10px;
-            margin-bottom: 1.5rem;
-            border-left: 5px solid var(--primary-color);
-        }
-
-        .result-item h3 {
-            margin-bottom: 0.5rem;
-            color: var(--text-color);
-            font-size: 1.2rem;
-            text-align: left;
-        }
-
-        #final-map, #final-kit {
-            font-size: 2rem;
-            font-weight: bold;
-            color: var(--primary-color);
-            text-align: left;
-        }
-
-        .raid-goal {
-            margin-top: 2rem;
-            padding: 1rem;
-            background-color: #222;
-            border-radius: 8px;
-        }
-
-        .raid-goal h3 {
-            color: var(--primary-color);
-            margin-bottom: 0.5rem;
-        }
-
-        /* --- Side Navigation Layout --- */
-        .side-nav {
-            background-color: #222;
-            padding: 1rem 0;
-            width: 200px;
-            flex-shrink: 0; /* Prevent nav from shrinking */
-            border-right: 1px solid var(--border-color);
-        }
-
-        .content-area {
-            padding: 2rem;
-            width: 100%;
-            overflow-y: auto; /* Add scroll for larger content */
-        }
-
-        .tab-link {
-            display: block;
-            width: 100%;
-            background: none;
-            border: none;
-            color: var(--text-color);
-            padding: 1rem 1.5rem;
-            font-size: 1.1rem;
+        .question-tile:not(.answered):hover {
+            transform: scale(1.05);
             cursor: pointer;
-            text-align: left;
-            border-left: 4px solid transparent;
-            transition: background-color 0.2s, border-color 0.2s;
         }
-
-        .tab-link:hover {
-            background-color: #333;
+        .question-tile.answered {
+            background-color: #373b9e;
+            color: #5d61c2;
+            cursor: not-allowed;
         }
-
-        .tab-link.active {
-            color: var(--primary-color);
-            border-left-color: var(--primary-color);
-            background-color: #2c2c2c;
+        .player-name:focus {
+            outline: 2px solid #ffcc00;
+            background-color: rgba(255, 255, 255, 0.1);
         }
-
-        .tab-content {
-            display: none;
+        #player-section.shake {
+            animation: shake 0.5s;
         }
-
-        .tab-content.active {
-            display: block;
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
         }
-
+        /* Custom scrollbar for player list */
+        #player-section::-webkit-scrollbar {
+            width: 8px;
+        }
+        #player-section::-webkit-scrollbar-track {
+            background: #2d3748; /* Corresponds to bg-gray-800 */
+        }
+        #player-section::-webkit-scrollbar-thumb {
+            background: #4a5568; /* Corresponds to bg-gray-700 */
+            border-radius: 4px;
+        }
+        #player-section::-webkit-scrollbar-thumb:hover {
+            background: #718096; /* Corresponds to bg-gray-600 */
+        }
     </style>
 </head>
-<body>
+<body class="bg-gray-900 text-white">
 
-    <div class="app-container">
-        <div class="main-layout">
-            <nav class="side-nav">
-                <button class="tab-link active" data-tab="rat-run-decider">Rat Run Decider</button>
-                <button class="tab-link" data-tab="quest-helper">Quest Helper</button>
-            </nav>
-            <main class="content-area">
-                <div id="rat-run-decider" class="tab-content active">
-                    <!-- Screen 1: Welcome -->
-                    <div id="welcome-screen" class="screen active">
-                        <h1>EFT Rat Run Decider</h1>
-                        <p>Can't decide on your next low-risk raid? Let fate choose for you.</p>
-                        <button id="start-btn" class="btn">Start Decider</button>
-                    </div>
-        
-                    <!-- Screen 2: Decider in Progress -->
-                    <div id="decider-screen" class="screen">
-                        <h2>Deciding your fate...</h2>
-                        <div class="decider-grid">
-                            <div>
-                                <h3>Map</h3>
-                                <ul id="map-list" class="decider-list"></ul>
-                            </div>
-                            <div>
-                                <h3>Kit</h3>
-                                <ul id="kit-list" class="decider-list"></ul>
-                            </div>
-                        </div>
-                    </div>
-        
-                    <!-- Screen 3: Results -->
-                    <div id="results-screen" class="screen">
-                        <h2>Your Next Raid</h2>
-                        <div class="decider-grid">
-                            <div class="result-item">
-                                <h3>MAP:</h3>
-                                <p id="final-map"></p>
-                            </div>
-                            <div class="result-item">
-                                <h3>KIT:</h3>
-                                <p id="final-kit"></p>
-                            </div>
-                        </div>
-                        <div class="raid-goal">
-                            <h3>Your Goal:</h3>
-                            <p id="raid-goal-text"></p>
-                        </div>
-                        <button id="retry-btn" class="btn">Try Again</button>
-                    </div>
+    <div id="game-container" class="flex flex-col lg:flex-row min-h-screen p-4 gap-4">
+
+        <!-- Main Game Board -->
+        <div id="board-section" class="flex-grow grid grid-cols-6 gap-2">
+            <!-- Categories and questions will be injected here by JavaScript -->
+        </div>
+
+        <!-- Player Scores & Controls -->
+        <div id="sidebar" class="w-full lg:w-96 flex-shrink-0 bg-gray-800 p-4 rounded-lg shadow-lg flex flex-col gap-4" style="max-height: 95vh;">
+            <h2 class="text-2xl font-bold text-center category-text tracking-wider flex-shrink-0">PLAYERS</h2>
+            <div id="player-section" class="grid grid-cols-2 lg:grid-cols-2 gap-2 flex-grow overflow-y-auto pr-2 min-h-0">
+                <!-- Player cards will be injected here -->
+            </div>
+            <button id="reset-game-btn" class="mt-auto w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex-shrink-0">
+                Reset Game
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Question Modal -->
+    <div id="question-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center hidden z-50">
+        <div class="bg-jeopardy-blue text-white w-11/12 md:w-3/4 lg:w-1/2 max-w-4xl p-8 rounded-lg shadow-2xl text-center border-4 border-gray-900">
+            <div id="question-view">
+                <p id="modal-category" class="text-2xl category-text mb-4"></p>
+                <p id="modal-question" class="text-4xl md:text-5xl jeopardy-text leading-tight"></p>
+                <button id="show-answer-btn" class="mt-8 bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-8 rounded-lg transition-colors text-xl">
+                    Show Answer
+                </button>
+            </div>
+            <div id="answer-view" class="hidden">
+                <p id="modal-answer" class="text-4xl md:text-5xl jeopardy-text leading-tight"></p>
+                <div class="mt-8 flex justify-center gap-4">
+                    <button id="correct-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg transition-colors text-xl">
+                        Correct
+                    </button>
+                    <button id="incorrect-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg transition-colors text-xl">
+                        Incorrect
+                    </button>
                 </div>
-        
-                <div id="quest-helper" class="tab-content">
-                    <h2>Quest Helper</h2>
-                    <p>This feature is coming soon!</p>
-                </div>
-            </main>
+            </div>
         </div>
     </div>
 
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- DOM Elements ---
-            const welcomeScreen = document.getElementById('welcome-screen');
-            const deciderScreen = document.getElementById('decider-screen');
-            const resultsScreen = document.getElementById('results-screen');
-            const startBtn = document.getElementById('start-btn');
-            const retryBtn = document.getElementById('retry-btn');
-            const mapList = document.getElementById('map-list');
-            const kitList = document.getElementById('kit-list');
-            const finalMapEl = document.getElementById('final-map');
-            const finalKitEl = document.getElementById('final-kit');
-            const raidGoalEl = document.getElementById('raid-goal-text');
 
-            // --- Data ---
-            const maps = ['Customs', 'Factory', 'Woods', 'Interchange', 'Shoreline', 'Reserve', 'The Lab', 'Lighthouse', 'Streets of Tarkov'];
-            const kits = ['Pistol Run', 'Hatchet Run', 'Shotgun Scavenger', 'Mosina Mania', 'SKS Survivalist'];
-            const goals = {
-                'Pistol Run': [
-                    'Get at least two PMC kills.',
-                    'Kill a Scav and extract with their primary weapon and rig.',
-                    'Extract with a pistol that isn\'t yours.',
-                    'Complete a quest objective.',
-                    'Fill your secure container with valuable loot (over 100k Rouble value).'
-                ],
-                'Hatchet Run': [
-                    'Find and extract with one valuable item (e.g., a motor, water filter) from a duffle bag or hidden stash.',
-                    'Loot a weapon from a Scav and get one kill with it.',
-                    'Reach a high-traffic area (e.g., Dorms on Customs, Resort on Shoreline) and escape without being seen.',
-                    'Find and extract with a full set of gear (rig, backpack, armor).',
-                    'Extract with at least 50,000 roubles worth of loot.'
-                ],
-                'Shotgun Scavenger': [
-                    'Extract with a full rig of loot found only on Scavs.',
-                    'Kill a PMC with a headshot using a shotgun.',
-                    'Use only buckshot and aim for the legs. Extract with at least one PMC kill.',
-                    'Find and extract with three different types of shotgun shells.',
-                    'Extract with a PMC\'s dog tag.'
-                ],
-                'Mosina Mania': [
-                    'Land a headshot on a PMC or a Scav Boss from over 75 meters.',
-                    'Get two kills without reloading (using the internal magazine).',
-                    'Extract with a Mosin that has at least 2 mods you added in-raid.',
-                    'Kill a Scav and take their weapon, using it for the rest of the raid.',
-                    'Get a kill using only iron sights.'
-                ],
-                'SKS Survivalist': [
-                    'Extract with at least two items needed for a hideout upgrade.',
-                    'Go the entire raid without sprinting unless shot at.',
-                    'Only loot items that can be used for crafting.',
-                    'Get a kill from over 100 meters away.',
-                    'Extract with a full inventory of food and water found in-raid.'
-                ]
-            };
+            // --- GAME DATA ---
+            // You can easily customize the categories, questions, and answers here.
+            const gameData = [
+                {
+                    category: "U.S. PRESIDENTS",
+                    questions: [
+                        { points: 200, question: "He was the only president to serve non-consecutive terms.", answer: "Grover Cleveland" },
+                        { points: 400, question: "This president was a licensed bartender.", answer: "Abraham Lincoln" },
+                        { points: 600, question: "The 'S' in Harry S. Truman's name stands for this.", answer: "Nothing" },
+                        { points: 800, question: "He was the first president born in a hospital.", answer: "Jimmy Carter" },
+                        { points: 1000, question: "He signed the act that made 'The Star-Spangled Banner' the national anthem.", answer: "Herbert Hoover" }
+                    ]
+                },
+                {
+                    category: "WORLD CAPITALS",
+                    questions: [
+                        { points: 200, question: "The capital of Australia is not Sydney, but this city.", answer: "Canberra" },
+                        { points: 400, question: "This city is the highest capital city in the world.", answer: "La Paz, Bolivia" },
+                        { points: 600, question: "This is the only world capital that is also a continent.", answer: "Singapore" },
+                        { points: 800, question: "Oslo, the capital of Norway, was known by this name until 1925.", answer: "Kristiania" },
+                        { points: 1000, question: "This capital city is split between two continents.", answer: "Istanbul" }
+                    ]
+                },
+                {
+                    category: "SCIENCE",
+                    questions: [
+                        { points: 200, question: "This is the name for the process of a liquid turning into a gas.", answer: "Evaporation" },
+                        { points: 400, question: "This planet is known as the 'Red Planet'.", answer: "Mars" },
+                        { points: 600, question: "The chemical symbol 'Au' represents this element.", answer: "Gold" },
+                        { points: 800, question: "This part of the cell is known as the 'powerhouse'.", answer: "Mitochondria" },
+                        { points: 1000, question: "This law of physics states that for every action, there is an equal and opposite reaction.", answer: "Newton's Third Law of Motion" }
+                    ]
+                },
+                {
+                    category: "LITERATURE",
+                    questions: [
+                        { points: 200, question: "'Call me Ishmael' is the opening line of this classic novel.", answer: "Moby Dick" },
+                        { points: 400, question: "He wrote 'The Great Gatsby'.", answer: "F. Scott Fitzgerald" },
+                        { points: 600, question: "This dystopian novel features the slogan 'War is Peace, Freedom is Slavery, Ignorance is Strength'.", answer: "1984" },
+                        { points: 800, question: "In 'The Hobbit', this is the name of the dragon who guards the treasure.", answer: "Smaug" },
+                        { points: 1000, question: "She wrote 'Frankenstein' at the age of 18.", answer: "Mary Shelley" }
+                    ]
+                },
+                {
+                    category: "MOVIES",
+                    questions: [
+                        { points: 200, question: "This film won the first-ever Academy Award for Best Picture.", answer: "Wings (1927)" },
+                        { points: 400, question: "In 'The Matrix', Neo is offered a choice between a red pill and this color pill.", answer: "A blue pill" },
+                        { points: 600, question: "This director is known for his films 'Pulp Fiction' and 'Kill Bill'.", answer: "Quentin Tarantino" },
+                        { points: 800, question: "The fictional African country of Wakanda is the setting for this superhero film.", answer: "Black Panther" },
+                        { points: 1000, question: "This is the highest-grossing film of all time (unadjusted for inflation).", answer: "Avatar (2009)" }
+                    ]
+                },
+                {
+                    category: "POTPOURRI",
+                    questions: [
+                        { points: 200, question: "This is the number of players on a standard soccer team.", answer: "11" },
+                        { points: 400, question: "The fear of spiders is known as this.", answer: "Arachnophobia" },
+                        { points: 600, question: "This artist painted the ceiling of the Sistine Chapel.", answer: "Michelangelo" },
+                        { points: 800, question: "A sommelier is an expert in this beverage.", answer: "Wine" },
+                        { points: 1000, question: "The Great Wall of China was primarily built to protect against invasions from this group.", answer: "The Mongols" }
+                    ]
+                }
+            ];
 
-            // --- Functions ---
-
-            /**
-             * Populates the list elements in the DOM.
-             */
-            function populateLists() {
-                mapList.innerHTML = maps.map(map => `<li class="decider-list-item">${map}</li>`).join('');
-                kitList.innerHTML = kits.map(kit => `<li class="decider-list-item">${kit}</li>`).join('');
+            // --- GAME STATE ---
+            let players = [];
+            const MAX_PLAYERS = 16;
+            for (let i = 0; i < MAX_PLAYERS; i++) {
+                players.push({ id: i, name: `Player ${i + 1}`, score: 0 });
             }
 
-            /**
-             * Switches the visible screen.
-             * @param {string} screenId - The ID of the screen to make active.
-             */
-            function showScreen(screenId) {
-                document.querySelectorAll('.screen').forEach(screen => {
-                    screen.classList.remove('active');
+            let currentPlayerId = null;
+            let currentQuestionData = null;
+            
+            // --- DOM ELEMENTS ---
+            const boardSection = document.getElementById('board-section');
+            const playerSection = document.getElementById('player-section');
+            const questionModal = document.getElementById('question-modal');
+            const modalCategory = document.getElementById('modal-category');
+            const modalQuestion = document.getElementById('modal-question');
+            const modalAnswer = document.getElementById('modal-answer');
+            const showAnswerBtn = document.getElementById('show-answer-btn');
+            const correctBtn = document.getElementById('correct-btn');
+            const incorrectBtn = document.getElementById('incorrect-btn');
+            const questionView = document.getElementById('question-view');
+            const answerView = document.getElementById('answer-view');
+            const resetGameBtn = document.getElementById('reset-game-btn');
+
+            // --- FUNCTIONS ---
+
+            function initGame() {
+                // Reset game state
+                gameData.forEach(cat => cat.questions.forEach(q => q.answered = false));
+                players.forEach(p => p.score = 0);
+                currentPlayerId = null;
+                
+                renderBoard();
+                renderPlayers();
+            }
+
+            function renderBoard() {
+                boardSection.innerHTML = '';
+                
+                // Create category headers
+                gameData.forEach(category => {
+                    const categoryDiv = document.createElement('div');
+                    categoryDiv.className = 'bg-jeopardy-blue flex items-center justify-center text-center p-2 text-white category-text text-xl lg:text-2xl rounded';
+                    categoryDiv.textContent = category.category;
+                    boardSection.appendChild(categoryDiv);
                 });
-                document.getElementById(screenId).classList.add('active');
+
+                // Create question tiles
+                for (let i = 0; i < 5; i++) {
+                    gameData.forEach((category, catIndex) => {
+                        const question = category.questions[i];
+                        const tile = document.createElement('div');
+                        tile.className = `question-tile jeopardy-blue flex items-center justify-center p-4 rounded text-3xl lg:text-5xl jeopardy-text ${question.answered ? 'answered' : ''}`;
+                        tile.textContent = `$${question.points}`;
+                        tile.dataset.categoryIndex = catIndex;
+                        tile.dataset.questionIndex = i;
+                        tile.addEventListener('click', handleTileClick);
+                        boardSection.appendChild(tile);
+                    });
+                }
             }
 
-            /**
-             * Core logic for the spinning and random selection animation.
-             * @param {HTMLElement} listElement - The ul element to animate.
-             * @param {string[]} dataArray - The array of strings for the list.
-             * @param {number} duration - Total duration of the spinning effect.
-             * @returns {Promise<string>} A promise that resolves with the selected item.
-             */
-            function runDecider(listElement, dataArray, duration) {
-                return new Promise(resolve => {
-                    const items = listElement.getElementsByTagName('li');
-                    const intervalDuration = 100; // How fast the highlight cycles
-                    let highlightIndex = 0;
-
-                    // Start the "spinning" visual effect
-                    const spinInterval = setInterval(() => {
-                        // Remove highlight from the previous item
-                        items[highlightIndex].classList.remove('highlight');
-                        
-                        // Move to the next item, looping back to the start
-                        highlightIndex = (highlightIndex + 1) % items.length;
-                        
-                        // Add highlight to the current item
-                        items[highlightIndex].classList.add('highlight');
-                    }, intervalDuration);
-
-                    // Stop the spinning and select the final item
-                    setTimeout(() => {
-                        clearInterval(spinInterval);
-
-                        // Pick a random item
-                        const randomIndex = Math.floor(Math.random() * dataArray.length);
-                        const selectedValue = dataArray[randomIndex];
-
-                        // Clear all highlights
-                        for (let item of items) {
-                            item.classList.remove('highlight');
-                        }
-
-                        // Apply final 'selected' class to the chosen item
-                        items[randomIndex].classList.add('selected');
-                        
-                        resolve(selectedValue);
-                    }, duration);
+            function renderPlayers() {
+                playerSection.innerHTML = '';
+                players.forEach(player => {
+                    const card = document.createElement('div');
+                    card.className = `player-card p-2 bg-gray-700 rounded-lg text-center transition-transform ${player.id === currentPlayerId ? 'selected' : ''}`;
+                    card.dataset.playerId = player.id;
+                    card.innerHTML = `
+                        <span contenteditable="true" class="player-name text-lg font-bold block rounded px-2 py-1">${player.name}</span>
+                        <span class="player-score text-2xl font-bold jeopardy-text mt-1 block">$${player.score}</span>
+                    `;
+                    playerSection.appendChild(card);
+                });
+                
+                // Add event listeners after rendering
+                document.querySelectorAll('.player-card').forEach(card => {
+                    card.addEventListener('click', handlePlayerSelect);
+                });
+                document.querySelectorAll('.player-name').forEach(nameSpan => {
+                    nameSpan.addEventListener('blur', handleNameChange);
                 });
             }
 
-            /**
-             * Resets the UI to the initial state.
-             */
-            function reset() {
-                // Remove 'selected' classes
-                document.querySelectorAll('.decider-list-item.selected').forEach(el => {
-                    el.classList.remove('selected');
-                });
-                showScreen('welcome-screen');
+            function handlePlayerSelect(e) {
+                // If the click was on the editable name itself, don't treat it as a player selection.
+                if (e.target.classList.contains('player-name')) {
+                    return;
+                }
+                const selectedCard = e.currentTarget;
+                const newPlayerId = parseInt(selectedCard.dataset.playerId);
+
+                if (currentPlayerId === newPlayerId) {
+                    // Deselect if clicking the same player again
+                    currentPlayerId = null;
+                } else {
+                    currentPlayerId = newPlayerId;
+                }
+                
+                renderPlayers(); // Re-render to update the 'selected' class
+            }
+            
+            function handleNameChange(e) {
+                const playerId = parseInt(e.target.closest('.player-card').dataset.playerId);
+                const newName = e.target.textContent;
+                const player = players.find(p => p.id === playerId);
+                if (player) {
+                    player.name = newName;
+                }
             }
 
-            // --- Event Listeners ---
+            function handleTileClick(e) {
+                if (currentPlayerId === null) {
+                    const sidebar = document.getElementById('sidebar');
+                    sidebar.classList.add('shake');
+                    setTimeout(() => sidebar.classList.remove('shake'), 500);
+                    // Optionally, show a more explicit message
+                    // alert("Please select a player first!");
+                    return;
+                }
 
-            startBtn.addEventListener('click', async () => {
-                showScreen('decider-screen');
+                const catIndex = e.target.dataset.categoryIndex;
+                const qIndex = e.target.dataset.questionIndex;
+                currentQuestionData = gameData[catIndex].questions[qIndex];
 
-                // Run both deciders simultaneously
-                const [selectedMap, selectedKit] = await Promise.all([
-                    runDecider(mapList, maps, 3000), // 3-second spin
-                    runDecider(kitList, kits, 3000)
-                ]);
+                if (currentQuestionData.answered) return;
 
-                // Short delay to appreciate the selection before showing results
-                setTimeout(() => {
-                    finalMapEl.textContent = selectedMap;
-                    finalKitEl.textContent = selectedKit;
-                    
-                    // Randomly select a goal from the chosen kit's list
-                    const kitGoals = goals[selectedKit];
-                    if (kitGoals && kitGoals.length > 0) {
-                        const randomGoal = kitGoals[Math.floor(Math.random() * kitGoals.length)];
-                        raidGoalEl.textContent = randomGoal;
-                    } else {
-                        raidGoalEl.textContent = 'Survive and extract!';
-                    }
+                modalCategory.textContent = gameData[catIndex].category;
+                modalQuestion.textContent = currentQuestionData.question;
+                modalAnswer.textContent = currentQuestionData.answer;
 
-                    showScreen('results-screen');
-                }, 1000);
+                questionView.classList.remove('hidden');
+                answerView.classList.add('hidden');
+                questionModal.classList.remove('hidden');
+            }
+
+            function handleAnswer(isCorrect) {
+                const points = currentQuestionData.points;
+                const player = players.find(p => p.id === currentPlayerId);
+
+                if (isCorrect) {
+                    player.score += points;
+                } else {
+                    player.score -= points;
+                }
+
+                currentQuestionData.answered = true;
+                
+                closeModal();
+                renderPlayers();
+                renderBoard(); // Re-render board to update answered tile style
+            }
+            
+            function closeModal() {
+                questionModal.classList.add('hidden');
+                currentQuestionData = null;
+            }
+
+            // --- EVENT LISTENERS ---
+            showAnswerBtn.addEventListener('click', () => {
+                questionView.classList.add('hidden');
+                answerView.classList.remove('hidden');
+            });
+            
+            correctBtn.addEventListener('click', () => handleAnswer(true));
+            incorrectBtn.addEventListener('click', () => handleAnswer(false));
+            
+            resetGameBtn.addEventListener('click', () => {
+                // Removed the confirm dialog for a smoother hosting experience, as it can be problematic in iframes/screen sharing.
+                initGame();
             });
 
-            retryBtn.addEventListener('click', reset);
-
-            // --- Initial Setup ---
-            populateLists();
-            showScreen('welcome-screen');
-
-            // --- Tab Functionality ---
-            const tabs = document.querySelectorAll('.tab-link');
-            const tabContents = document.querySelectorAll('.tab-content');
-
-            tabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    const target = document.getElementById(tab.dataset.tab);
-
-                    tabs.forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-
-                    tabContents.forEach(content => content.classList.remove('active'));
-                    target.classList.add('active');
-                });
+            // Close modal if clicking outside the content
+            questionModal.addEventListener('click', (e) => {
+                if (e.target === questionModal) {
+                    closeModal();
+                }
             });
+
+
+            // --- INITIALIZE ---
+            initGame();
+
         });
     </script>
-
 </body>
 </html>
+
+
+
