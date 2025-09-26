@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jeopardy Clone</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -59,6 +60,15 @@
         #player-section::-webkit-scrollbar-thumb:hover {
             background: #718096; /* Corresponds to bg-gray-600 */
         }
+        .modal-input {
+            background-color: #1a202c;
+            border: 2px solid #4a5568;
+            color: white;
+            padding: 8px;
+            border-radius: 8px;
+            text-align: center;
+            width: 100%;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-white">
@@ -84,16 +94,28 @@
             <div id="player-section" class="grid grid-cols-2 lg:grid-cols-2 gap-2 flex-grow overflow-y-auto pr-2 min-h-0">
                 <!-- Player cards will be injected here -->
             </div>
-            <button id="reset-game-btn" class="mt-auto w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex-shrink-0">
-                Reset Game
-            </button>
+            <div class="flex gap-2 mt-auto flex-shrink-0">
+                 <button id="undo-btn" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    Undo
+                </button>
+                <button id="reset-game-btn" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                    Reset Game
+                </button>
+            </div>
         </div>
-
     </div>
 
     <!-- Question Modal -->
     <div id="question-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center hidden z-50">
         <div class="bg-gray-900 text-white w-11/12 md:w-3/4 lg:w-1/2 max-w-4xl p-8 rounded-lg shadow-2xl text-center border-4 border-yellow-500">
+            <!-- Daily Double View -->
+            <div id="daily-double-view" class="hidden">
+                 <h2 class="text-6xl jeopardy-text animate-pulse">DAILY DOUBLE</h2>
+                 <p class="mt-4 text-xl">Enter your wager (up to $<span id="max-wager"></span>):</p>
+                 <input type="number" id="wager-input" class="modal-input mt-4 text-2xl" placeholder="Enter wager...">
+                 <button id="submit-wager-btn" class="mt-6 bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-8 rounded-lg transition-colors text-xl">Lock In Wager</button>
+            </div>
+            <!-- Regular Question View -->
             <div id="question-view">
                 <p id="modal-category" class="text-2xl category-text mb-4"></p>
                 <p id="modal-question" class="text-4xl md:text-5xl jeopardy-text leading-tight"></p>
@@ -101,6 +123,7 @@
                     Show Answer
                 </button>
             </div>
+             <!-- Answer View -->
             <div id="answer-view" class="hidden">
                 <p id="modal-answer" class="text-4xl md:text-5xl jeopardy-text leading-tight"></p>
                 <div class="mt-8 flex justify-center gap-4">
@@ -120,6 +143,9 @@
         <div class="bg-gray-800 text-white w-11/12 md:w-1/2 lg:w-1/3 max-w-lg p-6 rounded-lg shadow-2xl text-center border-2 border-gray-700">
             <h3 class="text-2xl font-bold category-text mb-6">Settings</h3>
             <div class="flex flex-col gap-4">
+                <button id="final-jeopardy-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-colors text-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                    Start Final Jeopardy
+                </button>
                 <button id="load-next-round-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors text-lg">
                     Load Next Round
                 </button>
@@ -127,9 +153,35 @@
                     Load "Double Jeopardy" Round
                 </button>
             </div>
+             <div class="mt-6">
+                <label for="volume-slider" class="block text-sm font-medium text-gray-300">Volume</label>
+                <input id="volume-slider" type="range" min="-40" max="0" value="-10" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+            </div>
             <button id="close-settings-btn" class="mt-8 text-gray-400 hover:text-white transition-colors">
                 Close
             </button>
+        </div>
+    </div>
+    
+    <!-- Final Jeopardy Modal -->
+    <div id="final-jeopardy-modal" class="fixed inset-0 bg-black bg-opacity-95 flex flex-col items-center justify-center hidden z-50 p-4">
+        <!-- Wager View -->
+        <div id="fj-wager-view" class="w-full max-w-4xl text-center">
+            <h2 class="text-6xl jeopardy-text">FINAL JEOPARDY</h2>
+            <p class="mt-4 text-3xl category-text">Category: <span id="fj-category"></span></p>
+            <div id="fj-wagers" class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+            <button id="lock-wagers-btn" class="mt-8 bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-8 rounded-lg transition-colors text-xl">Lock In Wagers & Show Question</button>
+        </div>
+        <!-- Question View -->
+        <div id="fj-question-view" class="w-full max-w-4xl text-center hidden">
+             <p id="fj-question" class="text-4xl md:text-5xl jeopardy-text leading-tight"></p>
+             <button id="fj-show-answer-btn" class="mt-8 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition-colors text-xl">Reveal Answer & Begin Scoring</button>
+        </div>
+        <!-- Scoring View -->
+        <div id="fj-scoring-view" class="w-full max-w-4xl text-center hidden">
+             <p id="fj-answer" class="text-4xl md:text-5xl jeopardy-text leading-tight mb-8"></p>
+             <div id="fj-player-scoring" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+             <button id="fj-end-game-btn" class="mt-8 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg transition-colors text-xl">End Game & Show Final Scores</button>
         </div>
     </div>
 
@@ -517,6 +569,11 @@
                     ]
                 }
             ];
+            const finalJeopardyData = {
+                category: "1980s MOVIES",
+                question: "This 1986 film's title character speaks the line, 'Life moves pretty fast. If you don't stop and look around once in a while, you could miss it.'",
+                answer: "Ferris Bueller's Day Off"
+            };
 
             // --- GAME STATE ---
             let players = [];
@@ -529,7 +586,30 @@
             let gameData = standardRoundsData[currentStandardRoundIndex];
             let currentPlayerId = null;
             let currentQuestionData = null;
+            let lastMove = { playerId: null, points: 0, catIndex: null, qIndex: null };
+            let dailyDoubleWager = 0;
             
+            // --- AUDIO ---
+            let sounds;
+            let theme;
+            try {
+                sounds = {
+                    correct: new Tone.Synth({ oscillator: { type: "sine" }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 } }).toDestination(),
+                    incorrect: new Tone.Synth({ oscillator: { type: "square" }, envelope: { attack: 0.005, decay: 0.2, sustain: 0.1, release: 1 } }).toDestination(),
+                    dailyDouble: new Tone.Synth({ oscillator: { type: "triangle" }, envelope: { attack: 0.01, decay: 0.5, sustain: 0.2, release: 1 } }).toDestination(),
+                };
+                 theme = new Tone.Synth({
+                    oscillator: { type: 'sawtooth' },
+                    envelope: { attack: 0.01, decay: 0.2, sustain: 0.2, release: 0.1, },
+                }).toDestination();
+                Tone.Transport.bpm.value = 140;
+            } catch (error) {
+                console.error("Could not initialize audio. Game will run without sound.", error);
+                sounds = null;
+                theme = null;
+            }
+
+
             // --- DOM ELEMENTS ---
             const boardSection = document.getElementById('board-section');
             const playerSection = document.getElementById('player-section');
@@ -542,12 +622,35 @@
             const incorrectBtn = document.getElementById('incorrect-btn');
             const questionView = document.getElementById('question-view');
             const answerView = document.getElementById('answer-view');
+            const dailyDoubleView = document.getElementById('daily-double-view');
+            const wagerInput = document.getElementById('wager-input');
+            const maxWager = document.getElementById('max-wager');
+            const submitWagerBtn = document.getElementById('submit-wager-btn');
             const resetGameBtn = document.getElementById('reset-game-btn');
+            const undoBtn = document.getElementById('undo-btn');
+
+            // Settings
             const settingsModal = document.getElementById('settings-modal');
             const settingsBtn = document.getElementById('settings-btn');
             const closeSettingsBtn = document.getElementById('close-settings-btn');
             const loadDoubleJeopardyBtn = document.getElementById('load-double-jeopardy-btn');
             const loadNextRoundBtn = document.getElementById('load-next-round-btn');
+            const volumeSlider = document.getElementById('volume-slider');
+            const finalJeopardyBtn = document.getElementById('final-jeopardy-btn');
+
+            // Final Jeopardy
+            const finalJeopardyModal = document.getElementById('final-jeopardy-modal');
+            const fjCategory = document.getElementById('fj-category');
+            const fjWagers = document.getElementById('fj-wagers');
+            const lockWagersBtn = document.getElementById('lock-wagers-btn');
+            const fjWagerView = document.getElementById('fj-wager-view');
+            const fjQuestionView = document.getElementById('fj-question-view');
+            const fjQuestion = document.getElementById('fj-question');
+            const fjShowAnswerBtn = document.getElementById('fj-show-answer-btn');
+            const fjScoringView = document.getElementById('fj-scoring-view');
+            const fjAnswer = document.getElementById('fj-answer');
+            const fjPlayerScoring = document.getElementById('fj-player-scoring');
+            const fjEndGameBtn = document.getElementById('fj-end-game-btn');
 
 
             // --- FUNCTIONS ---
@@ -555,32 +658,49 @@
             function initGame() {
                 // Reset game state completely
                 currentStandardRoundIndex = 0;
-                gameData = standardRoundsData[currentStandardRoundIndex];
-                gameData.forEach(cat => cat.questions.forEach(q => q.answered = false));
+                gameData = JSON.parse(JSON.stringify(standardRoundsData[currentStandardRoundIndex])); // Deep copy
                 
                 players.forEach(p => p.score = 0);
                 currentPlayerId = null;
+                clearLastMove();
+
+                assignDailyDoubles(1);
 
                 loadNextRoundBtn.disabled = false;
                 loadNextRoundBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                loadDoubleJeopardyBtn.disabled = false;
+                loadDoubleJeopardyBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                finalJeopardyBtn.disabled = true;
                 
                 renderBoard();
                 renderPlayers();
             }
 
-            function loadBoard(newBoardData) {
-                gameData = newBoardData;
-                gameData.forEach(cat => cat.questions.forEach(q => q.answered = false));
+            function assignDailyDoubles(count) {
+                const totalQuestions = gameData.length * gameData[0].questions.length;
+                let assigned = 0;
+                while(assigned < count) {
+                    const catIndex = Math.floor(Math.random() * gameData.length);
+                    const qIndex = Math.floor(Math.random() * gameData[0].questions.length);
+                    if (!gameData[catIndex].questions[qIndex].dailyDouble) {
+                        gameData[catIndex].questions[qIndex].dailyDouble = true;
+                        assigned++;
+                    }
+                }
+            }
+
+            function loadBoard(newBoardData, dailyDoubleCount = 0) {
+                gameData = JSON.parse(JSON.stringify(newBoardData)); // Deep copy to avoid mutation across rounds
+                assignDailyDoubles(dailyDoubleCount);
                 renderBoard();
+                checkBoardState();
                 settingsModal.classList.add('hidden');
             }
 
             function loadNextStandardRound() {
                 currentStandardRoundIndex++;
                 if (currentStandardRoundIndex < standardRoundsData.length) {
-                    loadBoard(standardRoundsData[currentStandardRoundIndex]);
-
-                    // Disable button if this is the last available round
+                    loadBoard(standardRoundsData[currentStandardRoundIndex], 1);
                     if (currentStandardRoundIndex + 1 >= standardRoundsData.length) {
                         loadNextRoundBtn.disabled = true;
                         loadNextRoundBtn.classList.add('opacity-50', 'cursor-not-allowed');
@@ -589,16 +709,37 @@
             }
 
             function loadDoubleJeopardy() {
-                loadBoard(doubleJeopardyRoundData);
+                loadBoard(doubleJeopardyRoundData, 2);
+                loadDoubleJeopardyBtn.disabled = true;
+                loadDoubleJeopardyBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+            
+            function clearLastMove() {
+                lastMove = { playerId: null, points: 0, catIndex: null, qIndex: null };
+                undoBtn.disabled = true;
+                undoBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+            
+            function handleUndo() {
+                if(lastMove.playerId === null) return;
+                
+                const player = players.find(p => p.id === lastMove.playerId);
+                player.score -= lastMove.points;
+                
+                if (lastMove.catIndex !== null) {
+                    gameData[lastMove.catIndex].questions[lastMove.qIndex].answered = false;
+                }
+                
+                clearLastMove();
+                renderPlayers();
+                renderBoard();
+                checkBoardState();
             }
 
             function renderBoard() {
                 boardSection.innerHTML = '';
-                
-                // Get the point values from the first category's questions (assuming they are consistent)
                 const pointValues = gameData[0].questions.map(q => q.points);
                 
-                // Create category headers
                 gameData.forEach(category => {
                     const categoryDiv = document.createElement('div');
                     categoryDiv.className = 'bg-jeopardy-blue flex items-center justify-center text-center p-2 text-white category-text text-xl lg:text-2xl rounded';
@@ -606,7 +747,6 @@
                     boardSection.appendChild(categoryDiv);
                 });
 
-                // Create question tiles row by row
                 pointValues.forEach((point, rowIndex) => {
                     gameData.forEach((category, catIndex) => {
                         const question = category.questions[rowIndex];
@@ -634,7 +774,6 @@
                     playerSection.appendChild(card);
                 });
                 
-                // Add event listeners after rendering
                 document.querySelectorAll('.player-card').forEach(card => {
                     card.addEventListener('click', handlePlayerSelect);
                 });
@@ -644,30 +783,16 @@
             }
 
             function handlePlayerSelect(e) {
-                // If the click was on the editable name itself, don't treat it as a player selection.
-                if (e.target.classList.contains('player-name')) {
-                    return;
-                }
+                if (e.target.classList.contains('player-name')) return;
                 const selectedCard = e.currentTarget;
                 const newPlayerId = parseInt(selectedCard.dataset.playerId);
-
-                if (currentPlayerId === newPlayerId) {
-                    // Deselect if clicking the same player again
-                    currentPlayerId = null;
-                } else {
-                    currentPlayerId = newPlayerId;
-                }
-                
-                renderPlayers(); // Re-render to update the 'selected' class
+                currentPlayerId = (currentPlayerId === newPlayerId) ? null : newPlayerId;
+                renderPlayers();
             }
             
             function handleNameChange(e) {
                 const playerId = parseInt(e.target.closest('.player-card').dataset.playerId);
-                const newName = e.target.textContent;
-                const player = players.find(p => p.id === playerId);
-                if (player) {
-                    player.name = newName;
-                }
+                players.find(p => p.id === playerId).name = e.target.textContent;
             }
 
             function handleTileClick(e) {
@@ -675,46 +800,187 @@
                     const sidebar = document.getElementById('sidebar');
                     sidebar.classList.add('shake');
                     setTimeout(() => sidebar.classList.remove('shake'), 500);
-                    // Optionally, show a more explicit message
-                    // alert("Please select a player first!");
                     return;
                 }
 
                 const catIndex = e.target.dataset.categoryIndex;
                 const qIndex = e.target.dataset.questionIndex;
                 currentQuestionData = gameData[catIndex].questions[qIndex];
+                currentQuestionData.catIndex = catIndex;
+                currentQuestionData.qIndex = qIndex;
+
 
                 if (currentQuestionData.answered) return;
-
+                
                 modalCategory.textContent = gameData[catIndex].category;
                 modalQuestion.textContent = currentQuestionData.question;
                 modalAnswer.textContent = currentQuestionData.answer;
-
-                questionView.classList.remove('hidden');
+                
+                if (currentQuestionData.dailyDouble) {
+                    handleDailyDouble();
+                } else {
+                    dailyDoubleView.classList.add('hidden');
+                    questionView.classList.remove('hidden');
+                }
+                
                 answerView.classList.add('hidden');
                 questionModal.classList.remove('hidden');
             }
 
-            function handleAnswer(isCorrect) {
-                const points = currentQuestionData.points;
+            function handleDailyDouble() {
+                if (sounds) sounds.dailyDouble.triggerAttackRelease("C4", "0.5s");
                 const player = players.find(p => p.id === currentPlayerId);
-
-                if (isCorrect) {
-                    player.score += points;
-                } else {
-                    player.score -= points;
-                }
-
-                currentQuestionData.answered = true;
+                const boardMaxPoints = Math.max(...gameData.flatMap(cat => cat.questions.map(q => q.points)));
+                const max = Math.max(player.score, boardMaxPoints);
+                maxWager.textContent = max;
+                wagerInput.value = '';
+                wagerInput.max = max;
+                wagerInput.min = 5;
                 
+                questionView.classList.add('hidden');
+                dailyDoubleView.classList.remove('hidden');
+            }
+
+            function handleSubmitWager() {
+                const wager = parseInt(wagerInput.value);
+                const player = players.find(p => p.id === currentPlayerId);
+                const boardMaxPoints = Math.max(...gameData.flatMap(cat => cat.questions.map(q => q.points)));
+                const max = Math.max(player.score, boardMaxPoints);
+
+                if (isNaN(wager) || wager < 5 || wager > max) {
+                    alert(`Invalid wager. Please enter a number between 5 and ${max}.`);
+                    return;
+                }
+                dailyDoubleWager = wager;
+                dailyDoubleView.classList.add('hidden');
+                questionView.classList.remove('hidden');
+            }
+
+            function handleAnswer(isCorrect) {
+                const points = currentQuestionData.dailyDouble ? dailyDoubleWager : currentQuestionData.points;
+                const player = players.find(p => p.id === currentPlayerId);
+                const pointsChange = isCorrect ? points : -points;
+                
+                player.score += pointsChange;
+                
+                // Set up for undo
+                lastMove = { playerId: player.id, points: pointsChange, catIndex: currentQuestionData.catIndex, qIndex: currentQuestionData.qIndex };
+                undoBtn.disabled = false;
+                undoBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+                if (sounds) {
+                    isCorrect ? sounds.correct.triggerAttackRelease("C5", "0.5s") : sounds.incorrect.triggerAttackRelease("G2", "0.5s");
+                }
+                
+                currentQuestionData.answered = true;
                 closeModal();
                 renderPlayers();
-                renderBoard(); // Re-render board to update answered tile style
+                renderBoard();
+                checkBoardState();
+            }
+
+            function checkBoardState() {
+                const allAnswered = gameData.every(cat => cat.questions.every(q => q.answered));
+                finalJeopardyBtn.disabled = !allAnswered;
             }
             
             function closeModal() {
                 questionModal.classList.add('hidden');
                 currentQuestionData = null;
+                dailyDoubleWager = 0;
+            }
+            
+            function startFinalJeopardy() {
+                 settingsModal.classList.add('hidden');
+                 fjWagerView.classList.remove('hidden');
+                 fjQuestionView.classList.add('hidden');
+                 fjScoringView.classList.add('hidden');
+                 
+                 fjCategory.textContent = finalJeopardyData.category;
+                 fjWagers.innerHTML = '';
+                 
+                 const eligiblePlayers = players.filter(p => p.score > 0);
+                 eligiblePlayers.forEach(player => {
+                     const wagerDiv = document.createElement('div');
+                     wagerDiv.className = 'bg-gray-700 p-4 rounded';
+                     wagerDiv.innerHTML = `
+                        <p class="text-lg font-bold">${player.name}</p>
+                        <input type="number" class="modal-input mt-2" placeholder="Wager" data-player-id="${player.id}" min="0" max="${player.score}">
+                     `;
+                     fjWagers.appendChild(wagerDiv);
+                 });
+
+                 finalJeopardyModal.classList.remove('hidden');
+            }
+
+            function lockWagers() {
+                fjWagerView.classList.add('hidden');
+                fjQuestionView.classList.remove('hidden');
+                fjQuestion.textContent = finalJeopardyData.question;
+
+                // Play theme music
+                if (theme) {
+                    const notes = ["G4", "C5", "G4", "F4", "G4", "C5", "G4", "F4", "G4", "C5", "G4", "C5", "D5", "E5", "F5"];
+                    let index = 0;
+                    Tone.Transport.scheduleRepeat(time => {
+                        if(index < notes.length) {
+                            theme.triggerAttackRelease(notes[index], '8n', time);
+                            index++;
+                        }
+                    }, '8n');
+                    Tone.Transport.start();
+                }
+            }
+            
+            function showFinalAnswer() {
+                if (theme) Tone.Transport.stop(0);
+                Tone.Transport.cancel(0);
+                
+                fjQuestionView.classList.add('hidden');
+                fjScoringView.classList.remove('hidden');
+                fjAnswer.textContent = `Answer: ${finalJeopardyData.answer}`;
+                
+                fjPlayerScoring.innerHTML = '';
+                const wagerInputs = fjWagers.querySelectorAll('input');
+                wagerInputs.forEach(input => {
+                    const playerId = parseInt(input.dataset.playerId);
+                    const player = players.find(p => p.id === playerId);
+                    const wager = parseInt(input.value) || 0;
+                    
+                    const scoringDiv = document.createElement('div');
+                    scoringDiv.className = 'bg-gray-700 p-4 rounded flex items-center justify-between';
+                    scoringDiv.innerHTML = `
+                        <div>
+                            <p class="text-lg font-bold">${player.name}</p>
+                            <p class="text-sm">Wagered: $${wager}</p>
+                        </div>
+                        <div class="flex gap-2">
+                             <button class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded" data-player-id="${playerId}" data-wager="${wager}" data-correct="true">Correct</button>
+                             <button class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded" data-player-id="${playerId}" data-wager="${wager}" data-correct="false">Incorrect</button>
+                        </div>
+                    `;
+                    fjPlayerScoring.appendChild(scoringDiv);
+                });
+                
+                fjPlayerScoring.querySelectorAll('button').forEach(button => {
+                    button.addEventListener('click', e => {
+                        const target = e.currentTarget;
+                        const parent = target.parentElement;
+                        parent.innerHTML = `<p class="text-2xl jeopardy-text">${target.dataset.correct === 'true' ? 'RIGHT' : 'WRONG'}</p>`;
+                        
+                        const playerId = parseInt(target.dataset.playerId);
+                        const wager = parseInt(target.dataset.wager);
+                        const isCorrect = target.dataset.correct === 'true';
+                        
+                        const player = players.find(p => p.id === playerId);
+                        player.score += isCorrect ? wager : -wager;
+                    });
+                });
+            }
+
+            function endGame() {
+                finalJeopardyModal.classList.add('hidden');
+                renderPlayers();
             }
 
             // --- EVENT LISTENERS ---
@@ -725,33 +991,32 @@
             
             correctBtn.addEventListener('click', () => handleAnswer(true));
             incorrectBtn.addEventListener('click', () => handleAnswer(false));
+            submitWagerBtn.addEventListener('click', handleSubmitWager);
             
-            resetGameBtn.addEventListener('click', () => {
-                // Removed the confirm dialog for a smoother hosting experience, as it can be problematic in iframes/screen sharing.
-                initGame();
-            });
+            resetGameBtn.addEventListener('click', initGame);
+            undoBtn.addEventListener('click', handleUndo);
 
-            // Settings Modal Listeners
-            settingsBtn.addEventListener('click', () => {
-                settingsModal.classList.remove('hidden');
-            });
-            closeSettingsBtn.addEventListener('click', () => {
-                settingsModal.classList.add('hidden');
-            });
+            // Settings
+            settingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
+            closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
             loadDoubleJeopardyBtn.addEventListener('click', loadDoubleJeopardy);
             loadNextRoundBtn.addEventListener('click', loadNextStandardRound);
+            finalJeopardyBtn.addEventListener('click', startFinalJeopardy);
+            volumeSlider.addEventListener('input', (e) => {
+                if (Tone.Master) Tone.Master.volume.value = e.target.value;
+            });
 
+            // Final Jeopardy
+            lockWagersBtn.addEventListener('click', lockWagers);
+            fjShowAnswerBtn.addEventListener('click', showFinalAnswer);
+            fjEndGameBtn.addEventListener('click', endGame);
 
-            // Close modal if clicking outside the content
+            // Close modals on outside click
             questionModal.addEventListener('click', (e) => {
-                if (e.target === questionModal) {
-                    closeModal();
-                }
+                if (e.target === questionModal) closeModal();
             });
             settingsModal.addEventListener('click', (e) => {
-                if (e.target === settingsModal) {
-                    settingsModal.classList.add('hidden');
-                }
+                if (e.target === settingsModal) settingsModal.classList.add('hidden');
             });
 
 
@@ -762,4 +1027,6 @@
     </script>
 </body>
 </html>
+
+
 
