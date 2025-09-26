@@ -1,5 +1,5 @@
 Jeopardy! - A Multiplayer Web Game
-Bring the excitement of America's favorite quiz show to your browser! This is a feature-rich, browser-based version of the classic trivia game, Jeopardy!, built for easy setup and play for up to 16 players. It's perfect for game nights, classrooms, parties, or team-building events.
+Bring the excitement of America's favorite quiz show to your browser! This is a feature-rich, browser-based version of the classic trivia game, Jeopardy!, built for easy setup and play for up to 16 players. It's perfect for game nights, classrooms, parties, or team-building events by sharing your sceen in a video conference.
 
 Play the live version here! https://barbaricdreams.github.io/
 
