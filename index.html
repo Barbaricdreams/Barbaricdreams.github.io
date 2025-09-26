@@ -180,12 +180,9 @@
 
     <div id="game-container" class="flex flex-col lg:flex-row h-screen p-2 sm:p-4 gap-2 sm:gap-4">
 
-        <!-- Main Game Board -->
         <div id="board-section" class="flex-grow grid grid-cols-6 grid-rows-6 gap-1 md:gap-2">
-            <!-- Game board built by JS -->
-        </div>
+            </div>
 
-        <!-- Player Scores & Controls -->
         <div id="sidebar" class="w-full lg:w-80 xl:w-96 flex-shrink-0 bg-gray-800 p-2 sm:p-4 rounded-lg shadow-lg flex flex-col gap-2 sm:gap-4">
             <div class="flex justify-between items-center flex-shrink-0">
                 <h2 class="text-xl lg:text-2xl category-text tracking-wider">Players</h2>
@@ -197,30 +194,18 @@
                 </button>
             </div>
             <div id="player-section" class="grid grid-cols-2 gap-2 flex-grow overflow-y-auto pr-2 min-h-0">
-                <!-- Player cards will be injected here -->
+                </div>
             </div>
-            <div class="flex gap-2 mt-auto flex-shrink-0">
-                 <button id="undo-btn" class="flex-1 bg-slate-500 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base">
-                    Undo
-                </button>
-                <button id="reset-game-btn" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors text-sm sm:text-base">
-                    Reset Game
-                </button>
-            </div>
-        </div>
     </div>
 
-    <!-- Question Modal -->
     <div id="question-modal" class="fixed inset-0 modal-backdrop flex items-center justify-center hidden z-50 p-4">
         <div class="modal-panel text-white w-11/12 md:w-3/4 lg:w-1/2 max-w-4xl p-4 sm:p-8 rounded-lg shadow-2xl text-center">
-            <!-- Daily Double View -->
             <div id="daily-double-view" class="hidden">
                  <h2 class="text-4xl sm:text-5xl lg:text-6xl jeopardy-points-text animate-pulse">DAILY DOUBLE</h2>
                  <p class="mt-4 text-lg sm:text-xl">Enter your wager (up to $<span id="max-wager"></span>):</p>
                  <input type="number" id="wager-input" class="modal-input mt-4 text-xl sm:text-2xl" placeholder="Enter wager...">
                  <button id="submit-wager-btn" class="mt-6 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-3 px-6 sm:px-8 rounded-lg transition-colors text-lg sm:text-xl">Lock In Wager</button>
             </div>
-            <!-- Regular Question View -->
             <div id="question-view">
                 <p id="modal-category" class="text-xl sm:text-2xl category-text mb-4"></p>
                 <p id="modal-question" class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl jeopardy-question-text leading-tight"></p>
@@ -228,8 +213,7 @@
                     Show Answer
                 </button>
             </div>
-             <!-- Answer View -->
-            <div id="answer-view" class="hidden">
+             <div id="answer-view" class="hidden">
                 <p id="modal-answer" class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl jeopardy-question-text leading-tight"></p>
                 <div class="mt-8 flex justify-center gap-4">
                     <button id="correct-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 sm:px-8 rounded-lg transition-colors text-lg sm:text-xl">
@@ -243,12 +227,11 @@
         </div>
     </div>
 
-    <!-- Settings Modal -->
     <div id="settings-modal" class="fixed inset-0 modal-backdrop flex items-center justify-center hidden z-50 p-4">
         <div class="modal-panel text-white w-11/12 md:w-1/2 lg:w-1/3 max-w-lg p-6 rounded-lg shadow-2xl text-center">
             <h3 class="text-2xl font-bold category-text mb-6">Settings</h3>
             <div class="flex flex-col gap-4">
-                <button id="final-jeopardy-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-colors text-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                <button id="final-jeopardy-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-colors text-lg">
                     Start Final Jeopardy
                 </button>
                 <button id="load-next-round-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors text-lg">
@@ -257,10 +240,25 @@
                 <button id="load-double-jeopardy-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors text-lg">
                     Load "Double Jeopardy" Round
                 </button>
+
+                <hr class="border-slate-600 my-2">
+                
+                <button id="help-btn" class="bg-yellow-500 hover:bg-yellow-600 text-slate-900 font-bold py-3 px-6 rounded-lg transition-colors text-lg">
+                    Help / Tutorial
+                </button>
+
+                <hr class="border-slate-600 my-2">
+
+                <button id="undo-btn" class="bg-slate-500 hover:bg-slate-600 text-white font-bold py-3 px-6 rounded-lg transition-colors text-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                    Undo Last Move
+                </button>
+                <button id="reset-game-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition-colors text-lg">
+                    Reset Game
+                </button>
             </div>
              <div class="mt-6">
-                <label for="volume-slider" class="block text-sm font-medium text-slate-300">Volume</label>
-                <input id="volume-slider" type="range" min="-40" max="0" value="-10" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                 <label for="volume-slider" class="block text-sm font-medium text-slate-300">Volume</label>
+                 <input id="volume-slider" type="range" min="-40" max="0" value="-10" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
             </div>
             <button id="close-settings-btn" class="mt-8 text-slate-400 hover:text-white transition-colors">
                 Close
@@ -268,25 +266,38 @@
         </div>
     </div>
     
-    <!-- Final Jeopardy Modal -->
     <div id="final-jeopardy-modal" class="fixed inset-0 bg-black bg-opacity-95 flex flex-col items-center justify-center hidden z-50 p-4">
-        <!-- Wager View -->
         <div id="fj-wager-view" class="w-full max-w-4xl text-center">
             <h2 class="text-4xl sm:text-5xl lg:text-6xl jeopardy-points-text">FINAL JEOPARDY</h2>
             <p class="mt-4 text-xl sm:text-2xl lg:text-3xl category-text">Category: <span id="fj-category"></span></p>
             <div id="fj-wagers" class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4"></div>
             <button id="lock-wagers-btn" class="mt-8 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-3 px-8 rounded-lg transition-colors text-lg sm:text-xl">Lock In Wagers & Show Question</button>
         </div>
-        <!-- Question View -->
         <div id="fj-question-view" class="w-full max-w-4xl text-center hidden">
              <p id="fj-question" class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl jeopardy-question-text leading-tight"></p>
              <button id="fj-show-answer-btn" class="mt-8 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition-colors text-lg sm:text-xl">Reveal Answer & Begin Scoring</button>
         </div>
-        <!-- Scoring View -->
         <div id="fj-scoring-view" class="w-full max-w-4xl text-center hidden">
              <p id="fj-answer" class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl jeopardy-question-text leading-tight mb-8"></p>
              <div id="fj-player-scoring" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
              <button id="fj-end-game-btn" class="mt-8 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg transition-colors text-lg sm:text-xl">End Game & Show Final Scores</button>
+        </div>
+    </div>
+    
+    <div id="help-modal" class="fixed inset-0 modal-backdrop flex items-center justify-center hidden z-50 p-4">
+        <div class="modal-panel text-white w-11/12 md:w-1/2 lg:w-1/3 max-w-lg p-6 rounded-lg shadow-2xl">
+            <h3 class="text-2xl font-bold category-text mb-4 text-center">How to Play</h3>
+            <div id="tutorial-content" class="text-left space-y-4 h-48 overflow-y-auto pr-2">
+                <!-- Tutorial steps will be injected here by JS -->
+            </div>
+            <div class="mt-6 flex justify-between items-center">
+                <button id="prev-tutorial-btn" class="bg-slate-500 hover:bg-slate-600 px-4 py-2 rounded disabled:opacity-50">Previous</button>
+                <span id="tutorial-step-indicator" class="text-slate-400"></span>
+                <button id="next-tutorial-btn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded">Next</button>
+            </div>
+            <button id="close-help-btn" class="mt-6 w-full text-slate-400 hover:text-white transition-colors">
+                Close
+            </button>
         </div>
     </div>
 
@@ -704,9 +715,9 @@
                     dailyDouble: new Tone.Synth({ oscillator: { type: "triangle" }, envelope: { attack: 0.01, decay: 0.5, sustain: 0.2, release: 1 } }).toDestination(),
                 };
                  theme = new Tone.Synth({
-                    oscillator: { type: 'sawtooth' },
-                    envelope: { attack: 0.01, decay: 0.2, sustain: 0.2, release: 0.1, },
-                }).toDestination();
+                     oscillator: { type: 'sawtooth' },
+                     envelope: { attack: 0.01, decay: 0.2, sustain: 0.2, release: 0.1, },
+                 }).toDestination();
                 Tone.Transport.bpm.value = 140;
             } catch (error) {
                 console.error("Could not initialize audio. Game will run without sound.", error);
@@ -756,9 +767,66 @@
             const fjAnswer = document.getElementById('fj-answer');
             const fjPlayerScoring = document.getElementById('fj-player-scoring');
             const fjEndGameBtn = document.getElementById('fj-end-game-btn');
+            
+            // Help/Tutorial
+            const helpBtn = document.getElementById('help-btn');
+            const helpModal = document.getElementById('help-modal');
+            const closeHelpBtn = document.getElementById('close-help-btn');
+            const tutorialContent = document.getElementById('tutorial-content');
+            const prevTutorialBtn = document.getElementById('prev-tutorial-btn');
+            const nextTutorialBtn = document.getElementById('next-tutorial-btn');
+            const tutorialStepIndicator = document.getElementById('tutorial-step-indicator');
 
 
             // --- FUNCTIONS ---
+
+            const tutorialSteps = [
+                {
+                    title: "Welcome to Jeopardy!",
+                    content: "This is a classic trivia game where you test your knowledge across various categories. Let's walk through how to play."
+                },
+                {
+                    title: "Editing Player Names",
+                    content: "To get started, you can change the default player names. Simply click on 'Player 1', 'Player 2', etc., in the sidebar, type a new name, and click away. You can have up to 16 players."
+                },
+                {
+                    title: "Selecting a Player",
+                    content: "Before picking a question, you MUST select which player is answering. Click on a player's card in the sidebar. It will be highlighted with a yellow border to show they are the active player."
+                },
+                {
+                    title: "Choosing a Clue",
+                    content: "Once a player is selected, click on any of the blue tiles on the main board to reveal a clue. The number on the tile represents its dollar value."
+                },
+                {
+                    title: "Answering & Scoring",
+                    content: "After the clue is read, click 'Show Answer'. Once the correct answer is revealed, click 'Correct' or 'Incorrect' to award or deduct the points from the selected player's score."
+                },
+                {
+                    title: "Daily Doubles",
+                    content: "Some tiles hide a Daily Double! If you find one, you must wager any amount from $5 up to your current score or the highest point value on the board, whichever is greater. Get it right, you win the wager. Get it wrong, you lose it!"
+                },
+                {
+                    title: "Settings Menu",
+                    content: "Click the gear icon (⚙️) to open the settings. Here you can load different rounds, undo the last move, reset the game, or start Final Jeopardy at any time!"
+                },
+                {
+                    title: "Final Jeopardy",
+                    content: "In Final Jeopardy, players with a positive score can wager their money on one final clue. Enter wagers for each player, reveal the question, then score them one by one. Good luck!"
+                }
+            ];
+            let currentTutorialStep = 0;
+
+            function renderTutorialStep() {
+                const step = tutorialSteps[currentTutorialStep];
+                tutorialContent.innerHTML = `
+                    <h4 class="text-xl font-bold text-amber-400">${step.title}</h4>
+                    <p class="text-slate-300">${step.content}</p>
+                `;
+                tutorialStepIndicator.textContent = `${currentTutorialStep + 1} / ${tutorialSteps.length}`;
+
+                prevTutorialBtn.disabled = currentTutorialStep === 0;
+                nextTutorialBtn.disabled = currentTutorialStep === tutorialSteps.length - 1;
+            }
 
             function initGame() {
                 // Reset game state completely
@@ -773,7 +841,7 @@
 
                 loadNextRoundBtn.disabled = false;
                 loadDoubleJeopardyBtn.disabled = false;
-                finalJeopardyBtn.disabled = true;
+                finalJeopardyBtn.disabled = false; // Allow Final Jeopardy anytime
                 
                 renderBoard();
                 renderPlayers();
@@ -796,7 +864,6 @@
                 gameData = JSON.parse(JSON.stringify(newBoardData)); // Deep copy to avoid mutation across rounds
                 assignDailyDoubles(dailyDoubleCount);
                 renderBoard();
-                checkBoardState();
                 settingsModal.classList.add('hidden');
             }
 
@@ -832,7 +899,6 @@
                 clearLastMove();
                 renderPlayers();
                 renderBoard();
-                checkBoardState();
             }
 
             function renderBoard() {
@@ -846,8 +912,10 @@
                 });
 
                 // Create question tiles
-                gameData.forEach((category, catIndex) => {
-                    category.questions.forEach((question, qIndex) => {
+                const questionRows = gameData[0].questions.length;
+                for (let qIndex = 0; qIndex < questionRows; qIndex++) {
+                    for (let catIndex = 0; catIndex < gameData.length; catIndex++) {
+                         const question = gameData[catIndex].questions[qIndex];
                         const tile = document.createElement('div');
                         tile.className = `question-tile flex items-center justify-center p-1 sm:p-2 rounded text-base sm:text-xl md:text-3xl lg:text-4xl xl:text-5xl jeopardy-points-text ${question.answered ? 'answered' : ''}`;
                         tile.textContent = `$${question.points}`;
@@ -857,8 +925,8 @@
                             tile.addEventListener('click', handleTileClick);
                         }
                         boardSection.appendChild(tile);
-                    });
-                });
+                    }
+                }
             }
 
             function renderPlayers() {
@@ -965,7 +1033,21 @@
                 const max = Math.max(player.score, boardMaxPoints);
 
                 if (isNaN(wager) || wager < 5 || wager > max) {
-                    alert(`Invalid wager. Please enter a number between 5 and ${max}.`);
+                    // Using a custom modal/alert would be better, but for simplicity:
+                    // Create a temporary message element
+                    const messageBox = document.createElement('div');
+                    messageBox.style.position = 'fixed';
+                    messageBox.style.top = '20px';
+                    messageBox.style.left = '50%';
+                    messageBox.style.transform = 'translateX(-50%)';
+                    messageBox.style.backgroundColor = '#F87171'; // red-400
+                    messageBox.style.color = 'white';
+                    messageBox.style.padding = '1rem 2rem';
+                    messageBox.style.borderRadius = '0.5rem';
+                    messageBox.style.zIndex = '100';
+                    messageBox.textContent = `Invalid wager. Please enter a number between 5 and ${max}.`;
+                    document.body.appendChild(messageBox);
+                    setTimeout(() => document.body.removeChild(messageBox), 3000);
                     return;
                 }
                 dailyDoubleWager = wager;
@@ -1004,12 +1086,6 @@
                     renderPlayers();
                 }, 500);
                 renderBoard();
-                checkBoardState();
-            }
-
-            function checkBoardState() {
-                const allAnswered = gameData.every(cat => cat.questions.every(q => q.answered));
-                finalJeopardyBtn.disabled = !allAnswered;
             }
             
             function closeModal() {
@@ -1032,8 +1108,8 @@
                      const wagerDiv = document.createElement('div');
                      wagerDiv.className = 'bg-slate-700 p-4 rounded';
                      wagerDiv.innerHTML = `
-                        <p class="text-lg font-bold">${player.name}</p>
-                        <input type="number" class="modal-input mt-2" placeholder="Wager" data-player-id="${player.id}" min="0" max="${player.score}">
+                         <p class="text-lg font-bold">${player.name}</p>
+                         <input type="number" class="modal-input mt-2" placeholder="Wager" data-player-id="${player.id}" min="0" max="${player.score}">
                      `;
                      fjWagers.appendChild(wagerDiv);
                  });
@@ -1051,10 +1127,8 @@
                     const notes = ["G4", "C5", "G4", "F4", "G4", "C5", "G4", "F4", "G4", "C5", "G4", "C5", "D5", "E5", "F5"];
                     let index = 0;
                     Tone.Transport.scheduleRepeat(time => {
-                        if(index < notes.length) {
-                            theme.triggerAttackRelease(notes[index], '8n', time);
-                            index++;
-                        }
+                        theme.triggerAttackRelease(notes[index], '8n', time);
+                        index = (index + 1) % notes.length; // Loop the melody
                     }, '8n');
                     Tone.Transport.start();
                 }
@@ -1139,12 +1213,36 @@
             fjShowAnswerBtn.addEventListener('click', showFinalAnswer);
             fjEndGameBtn.addEventListener('click', endGame);
 
+            // Help / Tutorial
+            helpBtn.addEventListener('click', () => {
+                settingsModal.classList.add('hidden');
+                helpModal.classList.remove('hidden');
+                currentTutorialStep = 0;
+                renderTutorialStep();
+            });
+            closeHelpBtn.addEventListener('click', () => helpModal.classList.add('hidden'));
+            nextTutorialBtn.addEventListener('click', () => {
+                if (currentTutorialStep < tutorialSteps.length - 1) {
+                    currentTutorialStep++;
+                    renderTutorialStep();
+                }
+            });
+            prevTutorialBtn.addEventListener('click', () => {
+                if (currentTutorialStep > 0) {
+                    currentTutorialStep--;
+                    renderTutorialStep();
+                }
+            });
+
             // Close modals on outside click
             questionModal.addEventListener('click', (e) => {
                 if (e.target === questionModal) closeModal();
             });
             settingsModal.addEventListener('click', (e) => {
                 if (e.target === settingsModal) settingsModal.classList.add('hidden');
+            });
+            helpModal.addEventListener('click', (e) => {
+                if (e.target === helpModal) helpModal.classList.add('hidden');
             });
 
 
@@ -1155,6 +1253,4 @@
     </script>
 </body>
 </html>
-
-
 
