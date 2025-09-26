@@ -69,7 +69,15 @@
 
         <!-- Player Scores & Controls -->
         <div id="sidebar" class="w-full lg:w-96 flex-shrink-0 bg-gray-800 p-4 rounded-lg shadow-lg flex flex-col gap-4" style="max-height: 95vh;">
-            <h2 class="text-2xl font-bold text-center category-text tracking-wider flex-shrink-0">PLAYERS</h2>
+            <div class="flex justify-between items-center flex-shrink-0">
+                <h2 class="text-2xl font-bold category-text tracking-wider">PLAYERS</h2>
+                <button id="settings-btn" class="text-gray-400 hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </button>
+            </div>
             <div id="player-section" class="grid grid-cols-2 lg:grid-cols-2 gap-2 flex-grow overflow-y-auto pr-2 min-h-0">
                 <!-- Player cards will be injected here -->
             </div>
@@ -104,71 +112,405 @@
         </div>
     </div>
 
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center hidden z-50">
+        <div class="bg-gray-800 text-white w-11/12 md:w-1/2 lg:w-1/3 max-w-lg p-6 rounded-lg shadow-2xl text-center border-2 border-gray-700">
+            <h3 class="text-2xl font-bold category-text mb-6">Settings</h3>
+            <div class="flex flex-col gap-4">
+                <button id="load-next-round-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors text-lg">
+                    Load Next Round
+                </button>
+                <button id="load-double-jeopardy-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors text-lg">
+                    Load "Double Jeopardy" Round
+                </button>
+            </div>
+            <button id="close-settings-btn" class="mt-8 text-gray-400 hover:text-white transition-colors">
+                Close
+            </button>
+        </div>
+    </div>
+
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 
             // --- GAME DATA ---
-            // You can easily customize the categories, questions, and answers here.
-            const gameData = [
+            const standardRoundsData = [
+                // Round 1
+                [
+                    {
+                        category: "U.S. PRESIDENTS",
+                        questions: [
+                            { points: 200, question: "He was the only president to serve non-consecutive terms.", answer: "Grover Cleveland" },
+                            { points: 400, question: "This president was a licensed bartender.", answer: "Abraham Lincoln" },
+                            { points: 600, question: "The 'S' in Harry S. Truman's name stands for this.", answer: "Nothing" },
+                            { points: 800, question: "He was the first president born in a hospital.", answer: "Jimmy Carter" },
+                            { points: 1000, question: "He signed the act that made 'The Star-Spangled Banner' the national anthem.", answer: "Herbert Hoover" }
+                        ]
+                    },
+                    {
+                        category: "WORLD CAPITALS",
+                        questions: [
+                            { points: 200, question: "The capital of Australia is not Sydney, but this city.", answer: "Canberra" },
+                            { points: 400, question: "This city is the highest capital city in the world.", answer: "La Paz, Bolivia" },
+                            { points: 600, question: "This is the only world capital that is also a continent.", answer: "Singapore" },
+                            { points: 800, question: "Oslo, the capital of Norway, was known by this name until 1925.", answer: "Kristiania" },
+                            { points: 1000, question: "This capital city is split between two continents.", answer: "Istanbul" }
+                        ]
+                    },
+                    {
+                        category: "SCIENCE",
+                        questions: [
+                            { points: 200, question: "This is the name for the process of a liquid turning into a gas.", answer: "Evaporation" },
+                            { points: 400, question: "This planet is known as the 'Red Planet'.", answer: "Mars" },
+                            { points: 600, question: "The chemical symbol 'Au' represents this element.", answer: "Gold" },
+                            { points: 800, question: "This part of the cell is known as the 'powerhouse'.", answer: "Mitochondria" },
+                            { points: 1000, question: "This law of physics states that for every action, there is an equal and opposite reaction.", answer: "Newton's Third Law of Motion" }
+                        ]
+                    },
+                    {
+                        category: "LITERATURE",
+                        questions: [
+                            { points: 200, question: "'Call me Ishmael' is the opening line of this classic novel.", answer: "Moby Dick" },
+                            { points: 400, question: "He wrote 'The Great Gatsby'.", answer: "F. Scott Fitzgerald" },
+                            { points: 600, question: "This dystopian novel features the slogan 'War is Peace, Freedom is Slavery, Ignorance is Strength'.", answer: "1984" },
+                            { points: 800, question: "In 'The Hobbit', this is the name of the dragon who guards the treasure.", answer: "Smaug" },
+                            { points: 1000, question: "She wrote 'Frankenstein' at the age of 18.", answer: "Mary Shelley" }
+                        ]
+                    },
+                    {
+                        category: "MOVIES",
+                        questions: [
+                            { points: 200, question: "This film won the first-ever Academy Award for Best Picture.", answer: "Wings (1927)" },
+                            { points: 400, question: "In 'The Matrix', Neo is offered a choice between a red pill and this color pill.", answer: "A blue pill" },
+                            { points: 600, question: "This director is known for his films 'Pulp Fiction' and 'Kill Bill'.", answer: "Quentin Tarantino" },
+                            { points: 800, question: "The fictional African country of Wakanda is the setting for this superhero film.", answer: "Black Panther" },
+                            { points: 1000, question: "This is the highest-grossing film of all time (unadjusted for inflation).", answer: "Avatar (2009)" }
+                        ]
+                    },
+                    {
+                        category: "POTPOURRI",
+                        questions: [
+                            { points: 200, question: "This is the number of players on a standard soccer team.", answer: "11" },
+                            { points: 400, question: "The fear of spiders is known as this.", answer: "Arachnophobia" },
+                            { points: 600, question: "This artist painted the ceiling of the Sistine Chapel.", answer: "Michelangelo" },
+                            { points: 800, question: "A sommelier is an expert in this beverage.", answer: "Wine" },
+                            { points: 1000, question: "The Great Wall of China was primarily built to protect against invasions from this group.", answer: "The Mongols" }
+                        ]
+                    }
+                ],
+                // Round 2
+                [
+                    {
+                        category: "GEOGRAPHY",
+                        questions: [
+                            { points: 200, question: "This is the longest river in the world.", answer: "The Nile" },
+                            { points: 400, question: "What is the capital of Brazil?", answer: "Brasília" },
+                            { points: 600, question: "Mount Everest is located in this mountain range.", answer: "The Himalayas" },
+                            { points: 800, question: "This is the largest desert in the world.", answer: "The Antarctic Polar Desert" },
+                            { points: 1000, question: "What is the smallest continent by land area?", answer: "Australia" }
+                        ]
+                    },
+                    {
+                        category: "MUSIC",
+                        questions: [
+                            { points: 200, question: "Who was the lead singer of the band Queen?", answer: "Freddie Mercury" },
+                            { points: 400, question: "This artist is known as the 'King of Pop'.", answer: "Michael Jackson" },
+                            { points: 600, question: "How many members were in The Beatles?", answer: "Four" },
+                            { points: 800, question: "The four movements of 'The Four Seasons' were composed by this Italian.", answer: "Antonio Vivaldi" },
+                            { points: 1000, question: "Hip hop music originated in this New York City borough.", answer: "The Bronx" }
+                        ]
+                    },
+                    {
+                        category: "HISTORY",
+                        questions: [
+                            { points: 200, question: "In what year did World War I begin?", answer: "1914" },
+                            { points: 400, question: "Who was the first man to walk on the moon?", answer: "Neil Armstrong" },
+                            { points: 600, question: "The Magna Carta was signed in what year?", answer: "1215" },
+                            { points: 800, question: "The ancient Egyptians called their rulers by this title.", answer: "Pharaoh" },
+                            { points: 1000, question: "The Berlin Wall fell in this year, marking a pivotal moment in the Cold War.", answer: "1989" }
+                        ]
+                    },
+                    {
+                        category: "TECHNOLOGY",
+                        questions: [
+                            { points: 200, question: "What does 'CPU' stand for in computing?", answer: "Central Processing Unit" },
+                            { points: 400, question: "This company developed the first commercially successful personal computer, the Apple II.", answer: "Apple" },
+                            { points: 600, question: "What does 'URL' stand for?", answer: "Uniform Resource Locator" },
+                            { points: 800, question: "This programming language, developed by Sun Microsystems, shares its name with a type of coffee.", answer: "Java" },
+                            { points: 1000, question: "Who is the CEO of Tesla and SpaceX?", answer: "Elon Musk" }
+                        ]
+                    },
+                    {
+                        category: "FOOD & DRINK",
+                        questions: [
+                            { points: 200, question: "This is the main ingredient in guacamole.", answer: "Avocado" },
+                            { points: 400, question: "From which country does Parmesan cheese originate?", answer: "Italy" },
+                            { points: 600, question: "What is the primary spirit in a Mojito cocktail?", answer: "Rum" },
+                            { points: 800, question: "The process of heating a liquid to kill bacteria is named after this scientist.", answer: "Louis Pasteur (Pasteurization)" },
+                            { points: 1000, question: "Saffron, the world's most expensive spice, comes from this type of flower.", answer: "Crocus" }
+                        ]
+                    },
+                    {
+                        category: "ANIMALS",
+                        questions: [
+                            { points: 200, question: "What is a group of lions called?", answer: "A pride" },
+                            { points: 400, question: "This is the only mammal capable of true flight.", answer: "The bat" },
+                            { points: 600, question: "What is the fastest land animal?", answer: "The cheetah" },
+                            { points: 800, question: "How many hearts does an octopus have?", answer: "Three" },
+                            { points: 1000, question: "The giant panda's diet is almost exclusively composed of this plant.", answer: "Bamboo" }
+                        ]
+                    }
+                ],
+                // Round 3
+                [
+                    {
+                        category: "90s POP CULTURE",
+                        questions: [
+                            { points: 200, question: "This TV show's theme song was 'I'll Be There for You' by The Rembrandts.", answer: "Friends" },
+                            { points: 400, question: "The Spice Girls released this debut single in 1996.", answer: "Wannabe" },
+                            { points: 600, question: "This handheld digital pet from Japan was a massive fad in the late 90s.", answer: "Tamagotchi" },
+                            { points: 800, question: "In 'The Fresh Prince of Bel-Air', the Banks family lived in this wealthy neighborhood.", answer: "Bel-Air" },
+                            { points: 1000, question: "This 1997 film starred Leonardo DiCaprio and Kate Winslet aboard a famously doomed ship.", answer: "Titanic" }
+                        ]
+                    },
+                    {
+                        category: "BIOLOGY",
+                        questions: [
+                            { points: 200, question: "What is the process by which plants use sunlight to create food?", answer: "Photosynthesis" },
+                            { points: 400, question: "What is the powerhouse of the cell?", answer: "The mitochondrion" },
+                            { points: 600, question: "DNA is short for this.", answer: "Deoxyribonucleic acid" },
+                            { points: 800, question: "This is the study of fungi.", answer: "Mycology" },
+                            { points: 1000, question: "How many chambers are in the human heart?", answer: "Four" }
+                        ]
+                    },
+                    {
+                        category: "FAMOUS BUILDINGS",
+                        questions: [
+                            { points: 200, question: "This tower in Pisa, Italy, is famous for its unintentional tilt.", answer: "The Leaning Tower of Pisa" },
+                            { points: 400, question: "This mausoleum in Agra, India, was built by emperor Shah Jahan for his wife Mumtaz.", answer: "The Taj Mahal" },
+                            { points: 600, question: "This opera house in Australia is famous for its shell-like roof design.", answer: "The Sydney Opera House" },
+                            { points: 800, question: "Located in Dubai, this is currently the tallest building in the world.", answer: "The Burj Khalifa" },
+                            { points: 1000, question: "This ancient Roman amphitheater was used for gladiatorial contests.", answer: "The Colosseum" }
+                        ]
+                    },
+                    {
+                        category: "VIDEO GAMES",
+                        questions: [
+                            { points: 200, question: "This Italian plumber is the mascot of Nintendo.", answer: "Mario" },
+                            { points: 400, question: "In this game, players build with blocks and go on adventures.", answer: "Minecraft" },
+                            { points: 600, question: "This character is a blue hedgehog known for his super speed.", answer: "Sonic the Hedgehog" },
+                            { points: 800, question: "'Finish Him!' is a famous phrase from this fighting game series.", answer: "Mortal Kombat" },
+                            { points: 1000, question: "The city of Rapture is the underwater setting for this video game.", answer: "BioShock" }
+                        ]
+                    },
+                    {
+                        category: "CHEMISTRY",
+                        questions: [
+                            { points: 200, question: "What is the chemical symbol for water?", answer: "H2O" },
+                            { points: 400, question: "The periodic table arranges elements by this number.", answer: "Atomic number" },
+                            { points: 600, question: "This is the most abundant element in the Earth's atmosphere.", answer: "Nitrogen" },
+                            { points: 800, question: "What is the common name for sodium chloride?", answer: "Salt" },
+                            { points: 1000, question: "This noble gas is used to fill balloons to make them float.", answer: "Helium" }
+                        ]
+                    },
+                    {
+                        category: "SUPERHEROES",
+                        questions: [
+                            { points: 200, question: "This hero is known as the 'Man of Steel'.", answer: "Superman" },
+                            { points: 400, question: "What is the real name of Batman?", answer: "Bruce Wayne" },
+                            { points: 600, question: "This hero gets their power from a special hammer called Mjölnir.", answer: "Thor" },
+                            { points: 800, question: "The X-Men are a team of these, individuals born with superhuman abilities.", answer: "Mutants" },
+                            { points: 1000, question: "Before becoming Vision, this was the name of Tony Stark's AI butler.", answer: "J.A.R.V.I.S." }
+                        ]
+                    }
+                ],
+                 // Round 4
+                [
+                    {
+                        category: "WORLD RECORDS",
+                        questions: [
+                            { points: 200, question: "Who holds the world record for the 100m dash?", answer: "Usain Bolt" },
+                            { points: 400, question: "The world's tallest living man and woman are from this country.", answer: "Turkey" },
+                            { points: 600, question: "This is the world's best-selling book.", answer: "The Bible" },
+                            { points: 800, question: "The longest non-stop flight in the world connects Singapore to this US city.", answer: "New York City (Newark)" },
+                            { points: 1000, question: "The record for the most hot dogs eaten in 10 minutes is held by this competitive eater.", answer: "Joey Chestnut" }
+                        ]
+                    },
+                    {
+                        category: "ASTRONOMY",
+                        questions: [
+                            { points: 200, question: "How many planets are in our solar system?", answer: "Eight" },
+                            { points: 400, question: "This is the largest planet in our solar system.", answer: "Jupiter" },
+                            { points: 600, question: "A 'light-year' is a measure of this.", answer: "Distance" },
+                            { points: 800, question: "This is the name of our galaxy.", answer: "The Milky Way" },
+                            { points: 1000, question: "A supernova is the explosion of a this.", answer: "A star" }
+                        ]
+                    },
+                    {
+                        category: "BOARD GAMES",
+                        questions: [
+                            { points: 200, question: "In this game, you buy and trade properties to bankrupt your opponents.", answer: "Monopoly" },
+                            { points: 400, question: "What game involves removing wooden blocks from a tower until it collapses?", answer: "Jenga" },
+                            { points: 600, question: "In this classic detective game, you must determine who committed the murder, with what weapon, and in which room.", answer: "Clue (or Cluedo)" },
+                            { points: 800, question: "This is a game of strategic warfare where players try to conquer the world.", answer: "Risk" },
+                            { points: 1000, question: "In this German-style board game, players collect and trade resources to build settlements and roads.", answer: "The Settlers of Catan" }
+                        ]
+                    },
+                    {
+                        category: "FAMOUS PAINTINGS",
+                        questions: [
+                            { points: 200, question: "Who painted the Mona Lisa?", answer: "Leonardo da Vinci" },
+                            { points: 400, question: "This Dutch artist painted 'The Starry Night'.", answer: "Vincent van Gogh" },
+                            { points: 600, question: "'The Persistence of Memory', featuring melting clocks, was painted by this surrealist artist.", answer: "Salvador Dalí" },
+                            { points: 800, question: "This American artist is famous for his 'drip' technique.", answer: "Jackson Pollock" },
+                            { points: 1000, question: "This Spanish artist's masterpiece 'Guernica' is a powerful anti-war painting.", answer: "Pablo Picasso" }
+                        ]
+                    },
+                    {
+                        category: "WEB LINGO",
+                        questions: [
+                            { points: 200, question: "What does 'LOL' stand for?", answer: "Laughing Out Loud" },
+                            { points: 400, question: "This term refers to an unsolicited and unwanted email.", answer: "Spam" },
+                            { points: 600, question: "What is a 'meme'?", answer: "An idea, behavior, or style that spreads from person to person within a culture" },
+                            { points: 800, question: "A person who deliberately posts inflammatory comments online is known as this.", answer: "A troll" },
+                            { points: 1000, question: "What does the acronym 'TL;DR' stand for?", answer: "Too Long; Didn't Read" }
+                        ]
+                    },
+                    {
+                        category: "CARTOON CHARACTERS",
+                        questions: [
+                            { points: 200, question: "This character lives in a pineapple under the sea.", answer: "SpongeBob SquarePants" },
+                            { points: 400, question: "What is the name of Mickey Mouse's dog?", answer: "Pluto" },
+                            { points: 600, question: "This Looney Tunes character is known for saying 'What's up, doc?'.", answer: "Bugs Bunny" },
+                            { points: 800, question: "In 'The Simpsons', what is the name of the family's patriarch?", answer: "Homer Simpson" },
+                            { points: 1000, question: "This character from 'Scooby-Doo' is known for her intellect and orange turtleneck.", answer: "Velma Dinkley" }
+                        ]
+                    }
+                ],
+                // Round 5
+                [
+                     {
+                        category: "MATH",
+                        questions: [
+                            { points: 200, question: "What is the value of Pi to two decimal places?", answer: "3.14" },
+                            { points: 400, question: "How many sides does a hexagon have?", answer: "Six" },
+                            { points: 600, question: "In a right-angled triangle, the theorem a² + b² = c² is named after this Greek mathematician.", answer: "Pythagoras" },
+                            { points: 800, question: "What is 15% of 200?", answer: "30" },
+                            { points: 1000, question: "The Roman numeral 'C' represents what number?", answer: "100" }
+                        ]
+                    },
+                    {
+                        category: "OSCAR WINNERS",
+                        questions: [
+                            { points: 200, question: "This 1994 film starring Tom Hanks as a man recounting his life story won Best Picture.", answer: "Forrest Gump" },
+                            { points: 400, question: "Who won the Best Actor award for his role as the Joker in the 2008 film 'The Dark Knight'?", answer: "Heath Ledger" },
+                            { points: 600, question: "This South Korean film made history by winning Best Picture in 2020.", answer: "Parasite" },
+                            { points: 800, question: "How many 'Lord of the Rings' films won the Oscar for Best Picture?", answer: "One ('The Return of the King')" },
+                            { points: 1000, question: "This actress holds the record for the most Academy Awards for acting.", answer: "Katharine Hepburn" }
+                        ]
+                    },
+                    {
+                        category: "WORLD RELIGIONS",
+                        questions: [
+                            { points: 200, question: "This is the most practiced religion in the world.", answer: "Christianity" },
+                            { points: 400, question: "The holy book of Islam is called this.", answer: "The Quran" },
+                            { points: 600, question: "In Hinduism, this is the supreme spirit or ultimate reality.", answer: "Brahman" },
+                            { points: 800, question: "Siddhartha Gautama is the founder of this religion.", answer: "Buddhism" },
+                            { points: 1000, question: "The Western Wall in Jerusalem is a sacred site in this religion.", answer: "Judaism" }
+                        ]
+                    },
+                    {
+                        category: "SHAKESPEARE",
+                        questions: [
+                            { points: 200, question: "This play features the famous line 'To be, or not to be'.", answer: "Hamlet" },
+                            { points: 400, question: "In which city is 'Romeo and Juliet' set?", answer: "Verona, Italy" },
+                            { points: 600, question: "This character is the tragic hero of a play known as 'The Scottish Play'.", answer: "Macbeth" },
+                            { points: 800, question: "How many plays is Shakespeare credited with writing?", answer: "39" },
+                            { points: 1000, question: "The Globe Theatre, associated with Shakespeare, was located in this city.", answer: "London" }
+                        ]
+                    },
+                    {
+                        category: "FAMOUS LEADERS",
+                        questions: [
+                            { points: 200, question: "Who was the first President of the United States?", answer: "George Washington" },
+                            { points: 400, question: "This British Prime Minister led the UK during World War II.", answer: "Winston Churchill" },
+                            { points: 600, question: "This leader was the first female Prime Minister of the United Kingdom.", answer: "Margaret Thatcher" },
+                            { points: 800, question: "He was a key figure in the anti-apartheid movement in South Africa.", answer: "Nelson Mandela" },
+                            { points: 1000, question: "This queen was the longest-reigning monarch in British history.", answer: "Queen Elizabeth II" }
+                        ]
+                    },
+                    {
+                        category: "INVENTORS",
+                        questions: [
+                            { points: 200, question: "Who is credited with inventing the light bulb?", answer: "Thomas Edison" },
+                            { points: 400, question: "The telephone was invented by this person.", answer: "Alexander Graham Bell" },
+                            { points: 600, question: "This person developed the first successful polio vaccine.", answer: "Jonas Salk" },
+                            { points: 800, question: "The theory of relativity was developed by this famous scientist.", answer: "Albert Einstein" },
+                            { points: 1000, question: "This Polish and naturalized-French physicist and chemist conducted pioneering research on radioactivity.", answer: "Marie Curie" }
+                        ]
+                    }
+                ],
+            ];
+            const doubleJeopardyRoundData = [
                 {
-                    category: "U.S. PRESIDENTS",
+                    category: "ANCIENT MYTHOLOGY",
                     questions: [
-                        { points: 200, question: "He was the only president to serve non-consecutive terms.", answer: "Grover Cleveland" },
-                        { points: 400, question: "This president was a licensed bartender.", answer: "Abraham Lincoln" },
-                        { points: 600, question: "The 'S' in Harry S. Truman's name stands for this.", answer: "Nothing" },
-                        { points: 800, question: "He was the first president born in a hospital.", answer: "Jimmy Carter" },
-                        { points: 1000, question: "He signed the act that made 'The Star-Spangled Banner' the national anthem.", answer: "Herbert Hoover" }
+                        { points: 400, question: "In Greek mythology, he was the king of the gods.", answer: "Zeus" },
+                        { points: 800, question: "This creature was half-man, half-bull and lived in the Labyrinth.", answer: "The Minotaur" },
+                        { points: 1200, question: "In Egyptian mythology, she was the goddess of cats, protection, and fertility.", answer: "Bastet" },
+                        { points: 1600, question: "The Norse god of thunder who wields the hammer Mjölnir.", answer: "Thor" },
+                        { points: 2000, question: "This Roman god of the sea is the equivalent of the Greek god Poseidon.", answer: "Neptune" }
                     ]
                 },
                 {
-                    category: "WORLD CAPITALS",
+                    category: "INVENTIONS",
                     questions: [
-                        { points: 200, question: "The capital of Australia is not Sydney, but this city.", answer: "Canberra" },
-                        { points: 400, question: "This city is the highest capital city in the world.", answer: "La Paz, Bolivia" },
-                        { points: 600, question: "This is the only world capital that is also a continent.", answer: "Singapore" },
-                        { points: 800, question: "Oslo, the capital of Norway, was known by this name until 1925.", answer: "Kristiania" },
-                        { points: 1000, question: "This capital city is split between two continents.", answer: "Istanbul" }
+                        { points: 400, question: "This invention by Johannes Gutenberg revolutionized communication in the 15th century.", answer: "The printing press" },
+                        { points: 800, question: "Alexander Graham Bell is famously credited with inventing this device in 1876.", answer: "The telephone" },
+                        { points: 1200, question: "This was accidentally discovered by Alexander Fleming when he noticed mold killing bacteria.", answer: "Penicillin" },
+                        { points: 1600, question: "The first successful one of these was flown by the Wright brothers in 1903.", answer: "Airplane" },
+                        { points: 2000, question: "Tim Berners-Lee is credited with inventing this global system of interconnected computer networks.", answer: "The World Wide Web" }
                     ]
                 },
                 {
-                    category: "SCIENCE",
+                    category: "THE HUMAN BODY",
                     questions: [
-                        { points: 200, question: "This is the name for the process of a liquid turning into a gas.", answer: "Evaporation" },
-                        { points: 400, question: "This planet is known as the 'Red Planet'.", answer: "Mars" },
-                        { points: 600, question: "The chemical symbol 'Au' represents this element.", answer: "Gold" },
-                        { points: 800, question: "This part of the cell is known as the 'powerhouse'.", answer: "Mitochondria" },
-                        { points: 1000, question: "This law of physics states that for every action, there is an equal and opposite reaction.", answer: "Newton's Third Law of Motion" }
+                        { points: 400, question: "This is the largest organ of the human body.", answer: "The skin" },
+                        { points: 800, question: "These are the three types of blood vessels.", answer: "Arteries, veins, and capillaries" },
+                        { points: 1200, question: "This bone in the human body is also known as the 'collarbone'.", answer: "The clavicle" },
+                        { points: 1600, question: "The human brain is primarily composed of this substance.", answer: "Water (about 75%)" },
+                        { points: 2000, question: "This is the scientific name for the voice box.", answer: "The larynx" }
                     ]
                 },
                 {
-                    category: "LITERATURE",
+                    category: "FAMOUS QUOTES",
                     questions: [
-                        { points: 200, question: "'Call me Ishmael' is the opening line of this classic novel.", answer: "Moby Dick" },
-                        { points: 400, question: "He wrote 'The Great Gatsby'.", answer: "F. Scott Fitzgerald" },
-                        { points: 600, question: "This dystopian novel features the slogan 'War is Peace, Freedom is Slavery, Ignorance is Strength'.", answer: "1984" },
-                        { points: 800, question: "In 'The Hobbit', this is the name of the dragon who guards the treasure.", answer: "Smaug" },
-                        { points: 1000, question: "She wrote 'Frankenstein' at the age of 18.", answer: "Mary Shelley" }
+                        { points: 400, question: "'I think, therefore I am' is a famous quote by this philosopher.", answer: "René Descartes" },
+                        { points: 800, question: "This American author said 'The only thing we have to fear is fear itself'.", answer: "Franklin D. Roosevelt" },
+                        { points: 1200, question: "Who famously said, 'That's one small step for a man, one giant leap for mankind'?", answer: "Neil Armstrong" },
+                        { points: 1600, question: "'To be, or not to be, that is the question' is from this Shakespeare play.", answer: "Hamlet" },
+                        { points: 2000, question: "This civil rights leader proclaimed 'I have a dream'.", answer: "Martin Luther King Jr." }
                     ]
                 },
                 {
-                    category: "MOVIES",
+                    category: "SPORTS",
                     questions: [
-                        { points: 200, question: "This film won the first-ever Academy Award for Best Picture.", answer: "Wings (1927)" },
-                        { points: 400, question: "In 'The Matrix', Neo is offered a choice between a red pill and this color pill.", answer: "A blue pill" },
-                        { points: 600, question: "This director is known for his films 'Pulp Fiction' and 'Kill Bill'.", answer: "Quentin Tarantino" },
-                        { points: 800, question: "The fictional African country of Wakanda is the setting for this superhero film.", answer: "Black Panther" },
-                        { points: 1000, question: "This is the highest-grossing film of all time (unadjusted for inflation).", answer: "Avatar (2009)" }
+                        { points: 400, question: "In baseball, how many strikes does it take to get an out?", answer: "Three" },
+                        { points: 800, question: "The FIFA World Cup is the premier international tournament for this sport.", answer: "Soccer (Football)" },
+                        { points: 1200, question: "This American swimmer is the most decorated Olympian of all time.", answer: "Michael Phelps" },
+                        { points: 1600, question: "A 'hat-trick' in hockey is when a player scores this many goals in a single game.", answer: "Three" },
+                        { points: 2000, question: "The Tour de France is a famous annual race for this type of vehicle.", answer: "Bicycle" }
                     ]
                 },
                 {
-                    category: "POTPOURRI",
+                    category: "GENERAL KNOWLEDGE",
                     questions: [
-                        { points: 200, question: "This is the number of players on a standard soccer team.", answer: "11" },
-                        { points: 400, question: "The fear of spiders is known as this.", answer: "Arachnophobia" },
-                        { points: 600, question: "This artist painted the ceiling of the Sistine Chapel.", answer: "Michelangelo" },
-                        { points: 800, question: "A sommelier is an expert in this beverage.", answer: "Wine" },
-                        { points: 1000, question: "The Great Wall of China was primarily built to protect against invasions from this group.", answer: "The Mongols" }
+                        { points: 400, question: "This is the most spoken language in the world.", answer: "Mandarin Chinese" },
+                        { points: 800, question: "The currency of Japan is called this.", answer: "The Yen" },
+                        { points: 1200, question: "How many continents are there in the world?", answer: "Seven" },
+                        { points: 1600, question: "This famous art museum is located in Paris and houses the Mona Lisa.", answer: "The Louvre" },
+                        { points: 2000, question: "What is the capital of Canada?", answer: "Ottawa" }
                     ]
                 }
             ];
@@ -180,6 +522,8 @@
                 players.push({ id: i, name: `Player ${i + 1}`, score: 0 });
             }
 
+            let currentStandardRoundIndex = 0;
+            let gameData = standardRoundsData[currentStandardRoundIndex];
             let currentPlayerId = null;
             let currentQuestionData = null;
             
@@ -196,21 +540,60 @@
             const questionView = document.getElementById('question-view');
             const answerView = document.getElementById('answer-view');
             const resetGameBtn = document.getElementById('reset-game-btn');
+            const settingsModal = document.getElementById('settings-modal');
+            const settingsBtn = document.getElementById('settings-btn');
+            const closeSettingsBtn = document.getElementById('close-settings-btn');
+            const loadDoubleJeopardyBtn = document.getElementById('load-double-jeopardy-btn');
+            const loadNextRoundBtn = document.getElementById('load-next-round-btn');
+
 
             // --- FUNCTIONS ---
 
             function initGame() {
-                // Reset game state
+                // Reset game state completely
+                currentStandardRoundIndex = 0;
+                gameData = standardRoundsData[currentStandardRoundIndex];
                 gameData.forEach(cat => cat.questions.forEach(q => q.answered = false));
+                
                 players.forEach(p => p.score = 0);
                 currentPlayerId = null;
+
+                loadNextRoundBtn.disabled = false;
+                loadNextRoundBtn.classList.remove('opacity-50', 'cursor-not-allowed');
                 
                 renderBoard();
                 renderPlayers();
             }
 
+            function loadBoard(newBoardData) {
+                gameData = newBoardData;
+                gameData.forEach(cat => cat.questions.forEach(q => q.answered = false));
+                renderBoard();
+                settingsModal.classList.add('hidden');
+            }
+
+            function loadNextStandardRound() {
+                currentStandardRoundIndex++;
+                if (currentStandardRoundIndex < standardRoundsData.length) {
+                    loadBoard(standardRoundsData[currentStandardRoundIndex]);
+
+                    // Disable button if this is the last available round
+                    if (currentStandardRoundIndex + 1 >= standardRoundsData.length) {
+                        loadNextRoundBtn.disabled = true;
+                        loadNextRoundBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    }
+                }
+            }
+
+            function loadDoubleJeopardy() {
+                loadBoard(doubleJeopardyRoundData);
+            }
+
             function renderBoard() {
                 boardSection.innerHTML = '';
+                
+                // Get the point values from the first category's questions (assuming they are consistent)
+                const pointValues = gameData[0].questions.map(q => q.points);
                 
                 // Create category headers
                 gameData.forEach(category => {
@@ -220,19 +603,19 @@
                     boardSection.appendChild(categoryDiv);
                 });
 
-                // Create question tiles
-                for (let i = 0; i < 5; i++) {
+                // Create question tiles row by row
+                pointValues.forEach((point, rowIndex) => {
                     gameData.forEach((category, catIndex) => {
-                        const question = category.questions[i];
+                        const question = category.questions[rowIndex];
                         const tile = document.createElement('div');
                         tile.className = `question-tile jeopardy-blue flex items-center justify-center p-4 rounded text-3xl lg:text-5xl jeopardy-text ${question.answered ? 'answered' : ''}`;
                         tile.textContent = `$${question.points}`;
                         tile.dataset.categoryIndex = catIndex;
-                        tile.dataset.questionIndex = i;
+                        tile.dataset.questionIndex = rowIndex;
                         tile.addEventListener('click', handleTileClick);
                         boardSection.appendChild(tile);
                     });
-                }
+                });
             }
 
             function renderPlayers() {
@@ -345,10 +728,26 @@
                 initGame();
             });
 
+            // Settings Modal Listeners
+            settingsBtn.addEventListener('click', () => {
+                settingsModal.classList.remove('hidden');
+            });
+            closeSettingsBtn.addEventListener('click', () => {
+                settingsModal.classList.add('hidden');
+            });
+            loadDoubleJeopardyBtn.addEventListener('click', loadDoubleJeopardy);
+            loadNextRoundBtn.addEventListener('click', loadNextStandardRound);
+
+
             // Close modal if clicking outside the content
             questionModal.addEventListener('click', (e) => {
                 if (e.target === questionModal) {
                     closeModal();
+                }
+            });
+            settingsModal.addEventListener('click', (e) => {
+                if (e.target === settingsModal) {
+                    settingsModal.classList.add('hidden');
                 }
             });
 
@@ -360,6 +759,9 @@
     </script>
 </body>
 </html>
+
+
+
 
 
 
