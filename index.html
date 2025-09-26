@@ -3,50 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jeopardy Clone</title>
+    <title>Jeopardy!</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
+        /* --- Base & Typography --- */
         body {
-            font-family: 'Open Sans', sans-serif;
-            background: linear-gradient(to bottom right, #1a202c, #2d3748);
+            font-family: 'Inter', sans-serif;
+            color: #E2E8F0; /* slate-200 */
+            /* A subtle, modern background with gradients for depth */
+            background-color: #0F172A; /* slate-900 */
+            background-image: radial-gradient(circle at top left, rgba(56, 189, 248, 0.1), transparent 40%),
+                              radial-gradient(circle at bottom right, rgba(139, 92, 246, 0.1), transparent 40%);
         }
-        .jeopardy-blue { background-color: #060ce9; }
-        .jeopardy-text { font-family: 'Anton', sans-serif; color: #ffcc00; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
-        .category-text { font-family: 'Anton', sans-serif; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+
+        /* --- Custom Jeopardy Font Styles --- */
+        /* For point values on the board */
+        .jeopardy-points-text {
+            font-family: 'Inter', sans-serif;
+            font-weight: 900;
+            color: #FBBF24; /* amber-400 */
+            text-shadow: 0 0 4px #F59E0B, 0 0 8px #D97706, 2px 2px 2px rgba(0,0,0,0.5);
+        }
+        /* For question/answer text in the modal */
+        .jeopardy-question-text {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            color: #FEFCE8; /* yellow-50 */
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+        /* For category headers and titles */
+        .category-text {
+            font-weight: 700;
+            color: #E0F2FE; /* sky-100 */
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        /* --- Game Board Styling --- */
+        #board-section {
+            perspective: 1500px;
+        }
+        .category-header {
+            background: linear-gradient(to bottom, #1E3A8A, #172554);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .question-tile {
+            background-color: #1E40AF; /* A rich, deep blue */
+            border: 1px solid #2563EB;
+            border-radius: 0.5rem;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 0 10px rgba(59, 130, 246, 0.2);
+            transition: all 0.2s ease-in-out;
+        }
+        .question-tile:not(.answered):hover {
+            transform: scale(1.05) translateZ(20px);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 0 25px rgba(59, 130, 246, 0.7);
+            z-index: 10;
+            cursor: pointer;
+        }
+        .question-tile.answered {
+            background: #1E3A8A;
+            border-color: #172554;
+            color: #64748B; /* slate-500 */
+            text-shadow: none;
+            box-shadow: inset 0 4px 8px rgba(0,0,0,0.6);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* --- Sidebar & Player Cards --- */
+        #sidebar {
+            background-color: rgba(15, 23, 42, 0.7); /* slate-900 with alpha */
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+        }
         .player-card {
-            border: 3px solid transparent;
+            background-color: #1E293B; /* slate-800 */
+            border: 2px solid #334155; /* slate-700 */
+            border-radius: 0.5rem;
             transition: all 0.2s ease-in-out;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
         }
         .player-card.selected {
-            border-color: #ffcc00;
+            border-color: #FBBF24; /* amber-400 */
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
+            background-color: #334155;
+            z-index: 20;
             transform: scale(1.05);
-            box-shadow: 0 0 15px rgba(255, 204, 0, 0.7);
         }
-        .question-tile {
-            transition: transform 0.2s ease-in-out;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
-        }
-        .question-tile:not(.answered):hover {
-            transform: scale(1.05);
-            cursor: pointer;
-            z-index: 10;
-        }
-        .question-tile.answered {
-            background-color: #373b9e;
-            color: #5d61c2;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
+        /* --- Set transform origins based on card position --- */
+        /* Middle rows */
+        .player-card.selected-left.selected { transform-origin: center left; }
+        .player-card.selected-right.selected { transform-origin: center right; }
+        /* Top row corners */
+        .player-card.selected-top.selected-left.selected { transform-origin: top left; }
+        .player-card.selected-top.selected-right.selected { transform-origin: top right; }
+        /* Bottom row corners */
+        .player-card.selected-bottom.selected-left.selected { transform-origin: bottom left; }
+        .player-card.selected-bottom.selected-right.selected { transform-origin: bottom right; }
+
         .player-name:focus {
-            outline: 2px solid #ffcc00;
+            outline: 2px solid #FBBF24;
             background-color: rgba(255, 255, 255, 0.1);
         }
-        #player-section.shake {
+        #player-section.shake { /* Shake animation for player selection reminder */
             animation: shake 0.5s;
         }
         @keyframes shake {
@@ -55,79 +125,85 @@
             30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
             40%, 60% { transform: translate3d(4px, 0, 0); }
         }
-        /* Score animation */
+
+        /* --- Score Animation --- */
         .player-score {
             transition: color 0.3s, transform 0.3s;
         }
-        .player-score.animate-score-up {
-            animation: score-up 0.6s ease-out;
-        }
-        .player-score.animate-score-down {
-            animation: score-down 0.6s ease-out;
-        }
+        .player-score.animate-score-up { animation: score-up 0.6s ease-out; }
+        .player-score.animate-score-down { animation: score-down 0.6s ease-out; }
         @keyframes score-up {
-            0% { transform: translateY(0); color: #ffcc00; }
-            50% { transform: translateY(-10px); color: #4ade80; } /* green-400 */
-            100% { transform: translateY(0); color: #ffcc00; }
+            0% { transform: translateY(0); color: #FBBF24; }
+            50% { transform: translateY(-10px); color: #4ADE80; } /* green-400 */
+            100% { transform: translateY(0); color: #FBBF24; }
         }
         @keyframes score-down {
-            0% { transform: translateY(0); color: #ffcc00; }
-            50% { transform: translateY(10px); color: #f87171; } /* red-400 */
-            100% { transform: translateY(0); color: #ffcc00; }
+            0% { transform: translateY(0); color: #FBBF24; }
+            50% { transform: translateY(10px); color: #F87171; } /* red-400 */
+            100% { transform: translateY(0); color: #FBBF24; }
         }
-        /* Custom scrollbar */
-        #player-section::-webkit-scrollbar {
-            width: 8px;
+
+        /* --- Modals --- */
+        .modal-backdrop {
+            background-color: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(4px);
         }
-        #player-section::-webkit-scrollbar-track {
-            background: #2d3748; 
-        }
-        #player-section::-webkit-scrollbar-thumb {
-            background: #4a5568;
-            border-radius: 4px;
-        }
-        #player-section::-webkit-scrollbar-thumb:hover {
-            background: #718096;
+        .modal-panel {
+            background: linear-gradient(135deg, #1E293B, #0F172A); /* slate-800 to slate-900 */
+            border: 1px solid #334155; /* slate-700 */
         }
         .modal-input {
-            background-color: #1a202c;
-            border: 2px solid #4a5568;
+            background-color: #0F172A; /* slate-900 */
+            border: 2px solid #475569; /* slate-600 */
             color: white;
-            padding: 8px;
-            border-radius: 8px;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
             text-align: center;
             width: 100%;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
+        .modal-input:focus {
+            outline: none;
+            border-color: #FBBF24;
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+        }
+
+        /* --- Custom Scrollbar --- */
+        #player-section::-webkit-scrollbar { width: 8px; }
+        #player-section::-webkit-scrollbar-track { background: #1E293B; }
+        #player-section::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        #player-section::-webkit-scrollbar-thumb:hover { background: #64748B; }
+
     </style>
 </head>
-<body class="bg-gray-900 text-white">
+<body class="bg-slate-900 text-slate-200">
 
-    <div id="game-container" class="flex flex-col lg:flex-row h-screen p-4 gap-4">
+    <div id="game-container" class="flex flex-col lg:flex-row h-screen p-2 sm:p-4 gap-2 sm:gap-4">
 
         <!-- Main Game Board -->
-        <div id="board-section" class="flex-grow grid grid-cols-6 grid-rows-6 gap-2">
+        <div id="board-section" class="flex-grow grid grid-cols-6 grid-rows-6 gap-1 md:gap-2">
             <!-- Game board built by JS -->
         </div>
 
         <!-- Player Scores & Controls -->
-        <div id="sidebar" class="w-full lg:w-96 flex-shrink-0 bg-gray-800 p-4 rounded-lg shadow-lg flex flex-col gap-4">
+        <div id="sidebar" class="w-full lg:w-80 xl:w-96 flex-shrink-0 bg-gray-800 p-2 sm:p-4 rounded-lg shadow-lg flex flex-col gap-2 sm:gap-4">
             <div class="flex justify-between items-center flex-shrink-0">
-                <h2 class="text-2xl font-bold category-text tracking-wider">PLAYERS</h2>
-                <button id="settings-btn" class="text-gray-400 hover:text-white transition-colors">
+                <h2 class="text-xl lg:text-2xl category-text tracking-wider">Players</h2>
+                <button id="settings-btn" class="text-slate-400 hover:text-white transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                 </button>
             </div>
-            <div id="player-section" class="grid grid-cols-2 lg:grid-cols-2 gap-2 flex-grow overflow-y-auto pr-2 min-h-0">
+            <div id="player-section" class="grid grid-cols-2 gap-2 flex-grow overflow-y-auto pr-2 min-h-0">
                 <!-- Player cards will be injected here -->
             </div>
             <div class="flex gap-2 mt-auto flex-shrink-0">
-                 <button id="undo-btn" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                 <button id="undo-btn" class="flex-1 bg-slate-500 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base">
                     Undo
                 </button>
-                <button id="reset-game-btn" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                <button id="reset-game-btn" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors text-sm sm:text-base">
                     Reset Game
                 </button>
             </div>
@@ -135,31 +211,31 @@
     </div>
 
     <!-- Question Modal -->
-    <div id="question-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center hidden z-50">
-        <div class="bg-gray-900 text-white w-11/12 md:w-3/4 lg:w-1/2 max-w-4xl p-8 rounded-lg shadow-2xl text-center border-4 border-yellow-500">
+    <div id="question-modal" class="fixed inset-0 modal-backdrop flex items-center justify-center hidden z-50 p-4">
+        <div class="modal-panel text-white w-11/12 md:w-3/4 lg:w-1/2 max-w-4xl p-4 sm:p-8 rounded-lg shadow-2xl text-center">
             <!-- Daily Double View -->
             <div id="daily-double-view" class="hidden">
-                 <h2 class="text-6xl jeopardy-text animate-pulse">DAILY DOUBLE</h2>
-                 <p class="mt-4 text-xl">Enter your wager (up to $<span id="max-wager"></span>):</p>
-                 <input type="number" id="wager-input" class="modal-input mt-4 text-2xl" placeholder="Enter wager...">
-                 <button id="submit-wager-btn" class="mt-6 bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-8 rounded-lg transition-colors text-xl">Lock In Wager</button>
+                 <h2 class="text-4xl sm:text-5xl lg:text-6xl jeopardy-points-text animate-pulse">DAILY DOUBLE</h2>
+                 <p class="mt-4 text-lg sm:text-xl">Enter your wager (up to $<span id="max-wager"></span>):</p>
+                 <input type="number" id="wager-input" class="modal-input mt-4 text-xl sm:text-2xl" placeholder="Enter wager...">
+                 <button id="submit-wager-btn" class="mt-6 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-3 px-6 sm:px-8 rounded-lg transition-colors text-lg sm:text-xl">Lock In Wager</button>
             </div>
             <!-- Regular Question View -->
             <div id="question-view">
-                <p id="modal-category" class="text-2xl category-text mb-4"></p>
-                <p id="modal-question" class="text-4xl md:text-5xl jeopardy-text leading-tight"></p>
-                <button id="show-answer-btn" class="mt-8 bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-8 rounded-lg transition-colors text-xl">
+                <p id="modal-category" class="text-xl sm:text-2xl category-text mb-4"></p>
+                <p id="modal-question" class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl jeopardy-question-text leading-tight"></p>
+                <button id="show-answer-btn" class="mt-8 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-3 px-6 sm:px-8 rounded-lg transition-colors text-lg sm:text-xl">
                     Show Answer
                 </button>
             </div>
              <!-- Answer View -->
             <div id="answer-view" class="hidden">
-                <p id="modal-answer" class="text-4xl md:text-5xl jeopardy-text leading-tight"></p>
+                <p id="modal-answer" class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl jeopardy-question-text leading-tight"></p>
                 <div class="mt-8 flex justify-center gap-4">
-                    <button id="correct-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg transition-colors text-xl">
+                    <button id="correct-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 sm:px-8 rounded-lg transition-colors text-lg sm:text-xl">
                         Correct
                     </button>
-                    <button id="incorrect-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg transition-colors text-xl">
+                    <button id="incorrect-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 sm:px-8 rounded-lg transition-colors text-lg sm:text-xl">
                         Incorrect
                     </button>
                 </div>
@@ -168,8 +244,8 @@
     </div>
 
     <!-- Settings Modal -->
-    <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center hidden z-50">
-        <div class="bg-gray-800 text-white w-11/12 md:w-1/2 lg:w-1/3 max-w-lg p-6 rounded-lg shadow-2xl text-center border-2 border-gray-700">
+    <div id="settings-modal" class="fixed inset-0 modal-backdrop flex items-center justify-center hidden z-50 p-4">
+        <div class="modal-panel text-white w-11/12 md:w-1/2 lg:w-1/3 max-w-lg p-6 rounded-lg shadow-2xl text-center">
             <h3 class="text-2xl font-bold category-text mb-6">Settings</h3>
             <div class="flex flex-col gap-4">
                 <button id="final-jeopardy-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-colors text-lg disabled:opacity-50 disabled:cursor-not-allowed">
@@ -183,10 +259,10 @@
                 </button>
             </div>
              <div class="mt-6">
-                <label for="volume-slider" class="block text-sm font-medium text-gray-300">Volume</label>
-                <input id="volume-slider" type="range" min="-40" max="0" value="-10" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                <label for="volume-slider" class="block text-sm font-medium text-slate-300">Volume</label>
+                <input id="volume-slider" type="range" min="-40" max="0" value="-10" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
             </div>
-            <button id="close-settings-btn" class="mt-8 text-gray-400 hover:text-white transition-colors">
+            <button id="close-settings-btn" class="mt-8 text-slate-400 hover:text-white transition-colors">
                 Close
             </button>
         </div>
@@ -196,21 +272,21 @@
     <div id="final-jeopardy-modal" class="fixed inset-0 bg-black bg-opacity-95 flex flex-col items-center justify-center hidden z-50 p-4">
         <!-- Wager View -->
         <div id="fj-wager-view" class="w-full max-w-4xl text-center">
-            <h2 class="text-6xl jeopardy-text">FINAL JEOPARDY</h2>
-            <p class="mt-4 text-3xl category-text">Category: <span id="fj-category"></span></p>
-            <div id="fj-wagers" class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4"></div>
-            <button id="lock-wagers-btn" class="mt-8 bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-8 rounded-lg transition-colors text-xl">Lock In Wagers & Show Question</button>
+            <h2 class="text-4xl sm:text-5xl lg:text-6xl jeopardy-points-text">FINAL JEOPARDY</h2>
+            <p class="mt-4 text-xl sm:text-2xl lg:text-3xl category-text">Category: <span id="fj-category"></span></p>
+            <div id="fj-wagers" class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4"></div>
+            <button id="lock-wagers-btn" class="mt-8 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-3 px-8 rounded-lg transition-colors text-lg sm:text-xl">Lock In Wagers & Show Question</button>
         </div>
         <!-- Question View -->
         <div id="fj-question-view" class="w-full max-w-4xl text-center hidden">
-             <p id="fj-question" class="text-4xl md:text-5xl jeopardy-text leading-tight"></p>
-             <button id="fj-show-answer-btn" class="mt-8 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition-colors text-xl">Reveal Answer & Begin Scoring</button>
+             <p id="fj-question" class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl jeopardy-question-text leading-tight"></p>
+             <button id="fj-show-answer-btn" class="mt-8 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition-colors text-lg sm:text-xl">Reveal Answer & Begin Scoring</button>
         </div>
         <!-- Scoring View -->
         <div id="fj-scoring-view" class="w-full max-w-4xl text-center hidden">
-             <p id="fj-answer" class="text-4xl md:text-5xl jeopardy-text leading-tight mb-8"></p>
+             <p id="fj-answer" class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl jeopardy-question-text leading-tight mb-8"></p>
              <div id="fj-player-scoring" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-             <button id="fj-end-game-btn" class="mt-8 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg transition-colors text-xl">End Game & Show Final Scores</button>
+             <button id="fj-end-game-btn" class="mt-8 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg transition-colors text-lg sm:text-xl">End Game & Show Final Scores</button>
         </div>
     </div>
 
@@ -218,7 +294,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 
-            // --- GAME DATA ---
+            // --- GAME DATA (with corrections) ---
             const standardRoundsData = [
                 // Round 1
                 [
@@ -237,7 +313,7 @@
                         questions: [
                             { points: 200, question: "The capital of Australia is not Sydney, but this city.", answer: "Canberra" },
                             { points: 400, question: "This city is the highest capital city in the world.", answer: "La Paz, Bolivia" },
-                            { points: 600, question: "This is the only world capital that is also a continent.", answer: "Singapore" },
+                            { points: 600, question: "This Asian capital city is known for its strict laws, including a ban on importing and selling chewing gum.", answer: "Singapore" },
                             { points: 800, question: "Oslo, the capital of Norway, was known by this name until 1925.", answer: "Kristiania" },
                             { points: 1000, question: "This capital city is split between two continents.", answer: "Istanbul" }
                         ]
@@ -266,10 +342,10 @@
                         category: "MOVIES",
                         questions: [
                             { points: 200, question: "This film won the first-ever Academy Award for Best Picture.", answer: "Wings (1927)" },
-                            { points: 400, question: "In 'The Matrix', Neo is offered a choice between a red pill and this color pill.", answer: "A blue pill" },
+                            { points: 400, question: "In 'The Matrix', Neo is offered a choice between a red pill and this color pill.", answer: "Blue" },
                             { points: 600, question: "This director is known for his films 'Pulp Fiction' and 'Kill Bill'.", answer: "Quentin Tarantino" },
                             { points: 800, question: "The fictional African country of Wakanda is the setting for this superhero film.", answer: "Black Panther" },
-                            { points: 1000, question: "This is the highest-grossing film of all time (unadjusted for inflation).", answer: "Avatar (2009)" }
+                            { points: 1000, question: "As of 2023, this James Cameron film holds the record for the highest-grossing movie of all time.", answer: "Avatar" }
                         ]
                     },
                     {
@@ -288,7 +364,7 @@
                     {
                         category: "GEOGRAPHY",
                         questions: [
-                            { points: 200, question: "This is the longest river in the world.", answer: "The Nile" },
+                            { points: 200, question: "Often cited as the longest river in the world, it flows northward through northeastern Africa.", answer: "The Nile" },
                             { points: 400, question: "What is the capital of Brazil?", answer: "Brasília" },
                             { points: 600, question: "Mount Everest is located in this mountain range.", answer: "The Himalayas" },
                             { points: 800, question: "This is the largest desert in the world.", answer: "The Antarctic Polar Desert" },
@@ -391,7 +467,7 @@
                     {
                         category: "CHEMISTRY",
                         questions: [
-                            { points: 200, question: "What is the chemical symbol for water?", answer: "H2O" },
+                            { points: 200, question: "What is the chemical symbol for water?", answer: "H₂O" },
                             { points: 400, question: "The periodic table arranges elements by this number.", answer: "Atomic number" },
                             { points: 600, question: "This is the most abundant element in the Earth's atmosphere.", answer: "Nitrogen" },
                             { points: 800, question: "What is the common name for sodium chloride?", answer: "Salt" },
@@ -405,7 +481,7 @@
                             { points: 400, question: "What is the real name of Batman?", answer: "Bruce Wayne" },
                             { points: 600, question: "This hero gets their power from a special hammer called Mjölnir.", answer: "Thor" },
                             { points: 800, question: "The X-Men are a team of these, individuals born with superhuman abilities.", answer: "Mutants" },
-                            { points: 1000, question: "Before becoming Vision, this was the name of Tony Stark's AI butler.", answer: "J.A.R.V.I.S." }
+                            { points: 1000, question: "Before becoming Vision, this was the name of Tony Stark's A.I. butler.", answer: "J.A.R.V.I.S." }
                         ]
                     }
                 ],
@@ -417,7 +493,7 @@
                             { points: 200, question: "Who holds the world record for the 100m dash?", answer: "Usain Bolt" },
                             { points: 400, question: "The world's tallest living man and woman are from this country.", answer: "Turkey" },
                             { points: 600, question: "This is the world's best-selling book.", answer: "The Bible" },
-                            { points: 800, question: "The longest non-stop flight in the world connects Singapore to this US city.", answer: "New York City (Newark)" },
+                            { points: 800, question: "The longest non-stop flight in the world connects Singapore to this U.S. city.", answer: "New York City (Newark)" },
                             { points: 1000, question: "The record for the most hot dogs eaten in 10 minutes is held by this competitive eater.", answer: "Joey Chestnut" }
                         ]
                     },
@@ -457,7 +533,7 @@
                             { points: 200, question: "What does 'LOL' stand for?", answer: "Laughing Out Loud" },
                             { points: 400, question: "This term refers to an unsolicited and unwanted email.", answer: "Spam" },
                             { points: 600, question: "What is a 'meme'?", answer: "An idea, behavior, or style that spreads from person to person within a culture" },
-                            { points: 800, "question": "A person who deliberately posts inflammatory comments online is known as this.", "answer": "A troll" },
+                            { points: 800, question: "A person who deliberately posts inflammatory comments online is known as this.", answer: "A troll" },
                             { points: 1000, question: "What does the acronym 'TL;DR' stand for?", answer: "Too Long; Didn't Read" }
                         ]
                     },
@@ -488,14 +564,14 @@
                         category: "OSCAR WINNERS",
                         questions: [
                             { points: 200, question: "This 1994 film starring Tom Hanks as a man recounting his life story won Best Picture.", answer: "Forrest Gump" },
-                            { points: 400, question: "Who won the Best Actor award for his role as the Joker in the 2008 film 'The Dark Knight'?", answer: "Heath Ledger" },
+                            { points: 400, question: "Who won a posthumous Best Supporting Actor award for his role as the Joker in 'The Dark Knight'?", answer: "Heath Ledger" },
                             { points: 600, question: "This South Korean film made history by winning Best Picture in 2020.", answer: "Parasite" },
                             { points: 800, question: "How many 'Lord of the Rings' films won the Oscar for Best Picture?", answer: "One ('The Return of the King')" },
                             { points: 1000, question: "This actress holds the record for the most Academy Awards for acting.", answer: "Katharine Hepburn" }
                         ]
                     },
                     {
-                        category: "WORLD RELIGions",
+                        category: "WORLD RELIGIONS",
                         questions: [
                             { points: 200, question: "This is the most practiced religion in the world.", answer: "Christianity" },
                             { points: 400, question: "The holy book of Islam is called this.", answer: "The Quran" },
@@ -571,7 +647,7 @@
                     category: "FAMOUS QUOTES",
                     questions: [
                         { points: 400, question: "'I think, therefore I am' is a famous quote by this philosopher.", answer: "René Descartes" },
-                        { points: 800, question: "This American author said 'The only thing we have to fear is fear itself'.", answer: "Franklin D. Roosevelt" },
+                        { points: 800, question: "This U.S. President said 'The only thing we have to fear is fear itself'.", answer: "Franklin D. Roosevelt" },
                         { points: 1200, question: "Who famously said, 'That's one small step for a man, one giant leap for mankind'?", answer: "Neil Armstrong" },
                         { points: 1600, question: "'To be, or not to be, that is the question' is from this Shakespeare play.", answer: "Hamlet" },
                         { points: 2000, question: "This civil rights leader proclaimed 'I have a dream'.", answer: "Martin Luther King Jr." }
@@ -696,9 +772,7 @@
                 assignDailyDoubles(1);
 
                 loadNextRoundBtn.disabled = false;
-                loadNextRoundBtn.classList.remove('opacity-50', 'cursor-not-allowed');
                 loadDoubleJeopardyBtn.disabled = false;
-                loadDoubleJeopardyBtn.classList.remove('opacity-50', 'cursor-not-allowed');
                 finalJeopardyBtn.disabled = true;
                 
                 renderBoard();
@@ -706,8 +780,8 @@
             }
 
             function assignDailyDoubles(count) {
-                const totalQuestions = gameData.length * gameData[0].questions.length;
                 let assigned = 0;
+                if (gameData.length === 0 || gameData[0].questions.length === 0) return;
                 while(assigned < count) {
                     const catIndex = Math.floor(Math.random() * gameData.length);
                     const qIndex = Math.floor(Math.random() * gameData[0].questions.length);
@@ -730,23 +804,19 @@
                 currentStandardRoundIndex++;
                 if (currentStandardRoundIndex < standardRoundsData.length) {
                     loadBoard(standardRoundsData[currentStandardRoundIndex], 1);
-                    if (currentStandardRoundIndex + 1 >= standardRoundsData.length) {
-                        loadNextRoundBtn.disabled = true;
-                        loadNextRoundBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                    }
+                } else {
+                     loadNextRoundBtn.disabled = true;
                 }
             }
 
             function loadDoubleJeopardy() {
                 loadBoard(doubleJeopardyRoundData, 2);
                 loadDoubleJeopardyBtn.disabled = true;
-                loadDoubleJeopardyBtn.classList.add('opacity-50', 'cursor-not-allowed');
             }
             
             function clearLastMove() {
                 lastMove = { playerId: null, points: 0, catIndex: null, qIndex: null };
                 undoBtn.disabled = true;
-                undoBtn.classList.add('opacity-50', 'cursor-not-allowed');
             }
             
             function handleUndo() {
@@ -755,7 +825,7 @@
                 const player = players.find(p => p.id === lastMove.playerId);
                 player.score -= lastMove.points;
                 
-                if (lastMove.catIndex !== null) {
+                if (lastMove.catIndex !== null && gameData[lastMove.catIndex]) {
                     gameData[lastMove.catIndex].questions[lastMove.qIndex].answered = false;
                 }
                 
@@ -767,27 +837,25 @@
 
             function renderBoard() {
                 boardSection.innerHTML = '';
-                // Create category headers in the first row
-                gameData.forEach((category, catIndex) => {
+                // Create category headers
+                gameData.forEach((category) => {
                     const categoryDiv = document.createElement('div');
-                    categoryDiv.className = 'bg-jeopardy-blue flex items-center justify-center text-center p-2 text-white category-text text-xl lg:text-2xl rounded';
-                    categoryDiv.style.gridColumn = catIndex + 1;
-                    categoryDiv.style.gridRow = 1;
+                    categoryDiv.className = 'category-header category-text text-[9px] leading-tight sm:text-xs md:text-sm lg:text-base xl:text-lg';
                     categoryDiv.textContent = category.category;
                     boardSection.appendChild(categoryDiv);
                 });
 
-                // Create question tiles in the subsequent rows
+                // Create question tiles
                 gameData.forEach((category, catIndex) => {
                     category.questions.forEach((question, qIndex) => {
                         const tile = document.createElement('div');
-                        tile.className = `question-tile jeopardy-blue flex items-center justify-center p-4 rounded text-3xl lg:text-5xl jeopardy-text ${question.answered ? 'answered' : ''}`;
-                        tile.style.gridColumn = catIndex + 1;
-                        tile.style.gridRow = qIndex + 2; // +2 because row 1 is categories
+                        tile.className = `question-tile flex items-center justify-center p-1 sm:p-2 rounded text-base sm:text-xl md:text-3xl lg:text-4xl xl:text-5xl jeopardy-points-text ${question.answered ? 'answered' : ''}`;
                         tile.textContent = `$${question.points}`;
                         tile.dataset.categoryIndex = catIndex;
                         tile.dataset.questionIndex = qIndex;
-                        tile.addEventListener('click', handleTileClick);
+                        if (!question.answered) {
+                            tile.addEventListener('click', handleTileClick);
+                        }
                         boardSection.appendChild(tile);
                     });
                 });
@@ -797,11 +865,28 @@
                 playerSection.innerHTML = '';
                 players.forEach(player => {
                     const card = document.createElement('div');
-                    card.className = `player-card p-2 bg-gray-700 rounded-lg text-center transition-transform ${player.id === currentPlayerId ? 'selected' : ''}`;
+                    const isLeftColumn = player.id % 2 === 0;
+                    const selectedStateClass = player.id === currentPlayerId ? 'selected' : '';
+                    
+                    let positionClasses = [];
+                    if (isLeftColumn) {
+                        positionClasses.push('selected-left');
+                    } else {
+                        positionClasses.push('selected-right');
+                    }
+
+                    // Add vertical position classes
+                    if (player.id < 2) { // Top row
+                        positionClasses.push('selected-top');
+                    } else if (player.id >= players.length - 2) { // Bottom row
+                        positionClasses.push('selected-bottom');
+                    }
+
+                    card.className = `player-card p-2 text-center ${selectedStateClass} ${positionClasses.join(' ')}`;
                     card.dataset.playerId = player.id;
                     card.innerHTML = `
-                        <span contenteditable="true" class="player-name text-lg font-bold block rounded px-2 py-1">${player.name}</span>
-                        <span class="player-score text-2xl font-bold jeopardy-text mt-1 block">$${player.score}</span>
+                        <span contenteditable="true" class="player-name text-sm sm:text-base lg:text-lg font-bold block rounded px-2 py-1">${player.name}</span>
+                        <span class="player-score text-xl sm:text-2xl font-bold jeopardy-points-text mt-1 block">$${player.score}</span>
                     `;
                     playerSection.appendChild(card);
                 });
@@ -829,9 +914,9 @@
 
             function handleTileClick(e) {
                 if (currentPlayerId === null) {
-                    const sidebar = document.getElementById('sidebar');
-                    sidebar.classList.add('shake');
-                    setTimeout(() => sidebar.classList.remove('shake'), 500);
+                    const playerSection = document.getElementById('player-section');
+                    playerSection.classList.add('shake');
+                    setTimeout(() => playerSection.classList.remove('shake'), 500);
                     return;
                 }
 
@@ -907,7 +992,6 @@
                 // Set up for undo
                 lastMove = { playerId: player.id, points: pointsChange, catIndex: currentQuestionData.catIndex, qIndex: currentQuestionData.qIndex };
                 undoBtn.disabled = false;
-                undoBtn.classList.remove('opacity-50', 'cursor-not-allowed');
 
                 if (sounds) {
                     isCorrect ? sounds.correct.triggerAttackRelease("C5", "0.5s") : sounds.incorrect.triggerAttackRelease("G2", "0.5s");
@@ -946,7 +1030,7 @@
                  const eligiblePlayers = players.filter(p => p.score > 0);
                  eligiblePlayers.forEach(player => {
                      const wagerDiv = document.createElement('div');
-                     wagerDiv.className = 'bg-gray-700 p-4 rounded';
+                     wagerDiv.className = 'bg-slate-700 p-4 rounded';
                      wagerDiv.innerHTML = `
                         <p class="text-lg font-bold">${player.name}</p>
                         <input type="number" class="modal-input mt-2" placeholder="Wager" data-player-id="${player.id}" min="0" max="${player.score}">
@@ -992,7 +1076,7 @@
                     const wager = parseInt(input.value) || 0;
                     
                     const scoringDiv = document.createElement('div');
-                    scoringDiv.className = 'bg-gray-700 p-4 rounded flex items-center justify-between';
+                    scoringDiv.className = 'bg-slate-700 p-4 rounded flex items-center justify-between';
                     scoringDiv.innerHTML = `
                         <div>
                             <p class="text-lg font-bold">${player.name}</p>
@@ -1010,7 +1094,7 @@
                     button.addEventListener('click', e => {
                         const target = e.currentTarget;
                         const parent = target.parentElement;
-                        parent.innerHTML = `<p class="text-2xl jeopardy-text">${target.dataset.correct === 'true' ? 'RIGHT' : 'WRONG'}</p>`;
+                        parent.innerHTML = `<p class="text-2xl jeopardy-points-text">${target.dataset.correct === 'true' ? 'RIGHT' : 'WRONG'}</p>`;
                         
                         const playerId = parseInt(target.dataset.playerId);
                         const wager = parseInt(target.dataset.wager);
@@ -1071,4 +1155,6 @@
     </script>
 </body>
 </html>
+
+
 
