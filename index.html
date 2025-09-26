@@ -6,32 +6,41 @@
     <title>Jeopardy Clone</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Open Sans', sans-serif;
+            background: linear-gradient(to bottom right, #1a202c, #2d3748);
         }
         .jeopardy-blue { background-color: #060ce9; }
-        .jeopardy-text { font-family: 'Anton', sans-serif; color: #ffcc00; }
-        .category-text { font-family: 'Anton', sans-serif; }
+        .jeopardy-text { font-family: 'Anton', sans-serif; color: #ffcc00; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        .category-text { font-family: 'Anton', sans-serif; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
         .player-card {
             border: 3px solid transparent;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
         }
         .player-card.selected {
             border-color: #ffcc00;
             transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(255, 204, 0, 0.7);
         }
         .question-tile {
             transition: transform 0.2s ease-in-out;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
         }
         .question-tile:not(.answered):hover {
             transform: scale(1.05);
             cursor: pointer;
+            z-index: 10;
         }
         .question-tile.answered {
             background-color: #373b9e;
             color: #5d61c2;
             cursor: not-allowed;
+            box-shadow: none;
         }
         .player-name:focus {
             outline: 2px solid #ffcc00;
@@ -46,19 +55,39 @@
             30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
             40%, 60% { transform: translate3d(4px, 0, 0); }
         }
-        /* Custom scrollbar for player list */
+        /* Score animation */
+        .player-score {
+            transition: color 0.3s, transform 0.3s;
+        }
+        .player-score.animate-score-up {
+            animation: score-up 0.6s ease-out;
+        }
+        .player-score.animate-score-down {
+            animation: score-down 0.6s ease-out;
+        }
+        @keyframes score-up {
+            0% { transform: translateY(0); color: #ffcc00; }
+            50% { transform: translateY(-10px); color: #4ade80; } /* green-400 */
+            100% { transform: translateY(0); color: #ffcc00; }
+        }
+        @keyframes score-down {
+            0% { transform: translateY(0); color: #ffcc00; }
+            50% { transform: translateY(10px); color: #f87171; } /* red-400 */
+            100% { transform: translateY(0); color: #ffcc00; }
+        }
+        /* Custom scrollbar */
         #player-section::-webkit-scrollbar {
             width: 8px;
         }
         #player-section::-webkit-scrollbar-track {
-            background: #2d3748; /* Corresponds to bg-gray-800 */
+            background: #2d3748; 
         }
         #player-section::-webkit-scrollbar-thumb {
-            background: #4a5568; /* Corresponds to bg-gray-700 */
+            background: #4a5568;
             border-radius: 4px;
         }
         #player-section::-webkit-scrollbar-thumb:hover {
-            background: #718096; /* Corresponds to bg-gray-600 */
+            background: #718096;
         }
         .modal-input {
             background-color: #1a202c;
@@ -73,15 +102,15 @@
 </head>
 <body class="bg-gray-900 text-white">
 
-    <div id="game-container" class="flex flex-col lg:flex-row min-h-screen p-4 gap-4">
+    <div id="game-container" class="flex flex-col lg:flex-row h-screen p-4 gap-4">
 
         <!-- Main Game Board -->
-        <div id="board-section" class="flex-grow grid grid-cols-6 gap-2">
-            <!-- Categories and questions will be injected here by JavaScript -->
+        <div id="board-section" class="flex-grow grid grid-cols-6 grid-rows-6 gap-2">
+            <!-- Game board built by JS -->
         </div>
 
         <!-- Player Scores & Controls -->
-        <div id="sidebar" class="w-full lg:w-96 flex-shrink-0 bg-gray-800 p-4 rounded-lg shadow-lg flex flex-col gap-4" style="max-height: 95vh;">
+        <div id="sidebar" class="w-full lg:w-96 flex-shrink-0 bg-gray-800 p-4 rounded-lg shadow-lg flex flex-col gap-4">
             <div class="flex justify-between items-center flex-shrink-0">
                 <h2 class="text-2xl font-bold category-text tracking-wider">PLAYERS</h2>
                 <button id="settings-btn" class="text-gray-400 hover:text-white transition-colors">
@@ -738,23 +767,26 @@
 
             function renderBoard() {
                 boardSection.innerHTML = '';
-                const pointValues = gameData[0].questions.map(q => q.points);
-                
-                gameData.forEach(category => {
+                // Create category headers in the first row
+                gameData.forEach((category, catIndex) => {
                     const categoryDiv = document.createElement('div');
                     categoryDiv.className = 'bg-jeopardy-blue flex items-center justify-center text-center p-2 text-white category-text text-xl lg:text-2xl rounded';
+                    categoryDiv.style.gridColumn = catIndex + 1;
+                    categoryDiv.style.gridRow = 1;
                     categoryDiv.textContent = category.category;
                     boardSection.appendChild(categoryDiv);
                 });
 
-                pointValues.forEach((point, rowIndex) => {
-                    gameData.forEach((category, catIndex) => {
-                        const question = category.questions[rowIndex];
+                // Create question tiles in the subsequent rows
+                gameData.forEach((category, catIndex) => {
+                    category.questions.forEach((question, qIndex) => {
                         const tile = document.createElement('div');
                         tile.className = `question-tile jeopardy-blue flex items-center justify-center p-4 rounded text-3xl lg:text-5xl jeopardy-text ${question.answered ? 'answered' : ''}`;
+                        tile.style.gridColumn = catIndex + 1;
+                        tile.style.gridRow = qIndex + 2; // +2 because row 1 is categories
                         tile.textContent = `$${question.points}`;
                         tile.dataset.categoryIndex = catIndex;
-                        tile.dataset.questionIndex = rowIndex;
+                        tile.dataset.questionIndex = qIndex;
                         tile.addEventListener('click', handleTileClick);
                         boardSection.appendChild(tile);
                     });
@@ -862,6 +894,15 @@
                 const pointsChange = isCorrect ? points : -points;
                 
                 player.score += pointsChange;
+
+                // Animate score
+                const card = playerSection.querySelector(`[data-player-id="${player.id}"]`);
+                if (card) {
+                    const scoreEl = card.querySelector('.player-score');
+                    const animationClass = isCorrect ? 'animate-score-up' : 'animate-score-down';
+                    scoreEl.classList.add(animationClass);
+                    setTimeout(() => scoreEl.classList.remove(animationClass), 600);
+                }
                 
                 // Set up for undo
                 lastMove = { playerId: player.id, points: pointsChange, catIndex: currentQuestionData.catIndex, qIndex: currentQuestionData.qIndex };
@@ -874,7 +915,10 @@
                 
                 currentQuestionData.answered = true;
                 closeModal();
-                renderPlayers();
+                // Delay render to allow animation to be seen
+                setTimeout(() => {
+                    renderPlayers();
+                }, 500);
                 renderBoard();
                 checkBoardState();
             }
@@ -1027,6 +1071,4 @@
     </script>
 </body>
 </html>
-
-
 
